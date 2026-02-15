@@ -1,49 +1,16 @@
-# OpenCourt
+# React + Vite
 
-OpenCourt es una aplicación completa diseñada para facilitar la administración de turnos en de tenis. El sistema permite gestionar la disponibilidad de las canchas, realizar reservas de forma digital y administrar los perfiles de los usuarios desde una interfaz sencilla y eficiente.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 🚀 Características principales
+Currently, two official plugins are available:
 
-- **Gestión de Turnos:** Visualización de disponibilidad y reserva de horarios en tiempo real.
-- **Autenticación Segura:** Manejo de perfiles de usuario y administradores mediante Supabase Auth.
-- **Base de Datos Relacional:** Estructura robusta para evitar solapamientos de turnos y gestionar la disponibilidad por tipo de superficie (Polvo de ladrillo, cemento, etc.).
-- **Interfaz Adaptativa:** Diseño moderno y responsivo optimizado para desktop y dispositivos móviles.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## 🛠️ Stack Tecnológico
+## React Compiler
 
-- **Frontend:** [React](https://reactjs.org/) con [Vite](https://vitejs.dev/).
-- **Enrutado:** [React Router](https://reactrouter.com/).
-- **Backend & DB:** [Supabase](https://supabase.com/) (PostgreSQL).
-- **Estilos:** [CSS Modules / Tailwind]
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## 📦 Instalación y Configuración
+## Expanding the ESLint configuration
 
-1.  **Clonar el repositorio:**
-
-    ```bash
-    git clone [https://github.com/tu-usuario/opencourt.git](https://github.com/tu-usuario/opencourt.git)
-    cd opencourt
-    ```
-
-2.  **Instalar dependencias:**
-
-    ```bash
-    npm install
-    ```
-
-3.  **Configurar variables de entorno:**
-    Crea un archivo `.env` en la raíz del proyecto y añade tus credenciales de Supabase:
-
-    ```env
-    VITE_SUPABASE_URL=tu_url_de_supabase
-    VITE_SUPABASE_ANON_KEY=tu_anon_key
-    ```
-
-4.  **Iniciar el entorno de desarrollo:**
-    ```bash
-    npm run dev
-    ```
-
----
-
-Desarrollado por **Genaro Duca** – Full Stack Developer.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
