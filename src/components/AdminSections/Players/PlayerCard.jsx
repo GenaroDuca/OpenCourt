@@ -29,7 +29,6 @@ export default function PlayerCard({ data }) {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-white/50 shadow-inner">
-          {/* Placeholder for Avatar - using icon if no image */}
           <BsPerson size={32} />
         </div>
         <div className="flex flex-col items-end gap-1">
