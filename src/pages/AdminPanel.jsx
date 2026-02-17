@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
-import { Bookings } from "../components/AdminSections/Bookings";
+import Bookings from "../components/AdminSections/Bookings";
 import Players from "../components/AdminSections/Players";
 import Payments from "../components/AdminSections/Payments";
 import Settings from "../components/AdminSections/Settings";
