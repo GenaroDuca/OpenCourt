@@ -1,6 +1,6 @@
 import { BsPersonFillAdd } from "react-icons/bs";
 
-export default function PlayersHeader() {
+export default function PlayersHeader({ setIsAddingPlayer }) {
   return (
     <>
       <div className="flex justify-between items-center">
@@ -10,7 +10,7 @@ export default function PlayersHeader() {
             Gestiona los jugadores de la plataforma
           </p>
         </div>
-        <button className="flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+        <button onClick={() => setIsAddingPlayer(true)} className="flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15">
           <BsPersonFillAdd size={20} />
           Agregar Jugador
         </button>

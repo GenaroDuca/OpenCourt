@@ -2,6 +2,8 @@ import { useState } from "react";
 import { supabase } from "../../supabaseClient";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { HiOutlineMail } from "react-icons/hi";
+import { GiPadlock } from "react-icons/gi";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ export default function Login() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
       <div className="relative z-10 w-full max-w-md">
-        <div className="bg-background-card-color border border-border-color rounded-2xl shadow-2xl p-8 md:p-10">
+        <div className="bg-background-card-color border border-border-color rounded-4xl shadow-2xl p-6">
           <div className="flex flex-col items-center mb-8">
             <h1 className="text-3xl font-bold font-display mb-2 text-white">
               Bienvenido
@@ -49,15 +51,20 @@ export default function Login() {
               >
                 Email
               </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="ejemplo@correo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-dark-bg border border-border-color rounded-lg px-4 py-3  placeholder-gray-600 focus:outline-none transition-all duration-200 text-text-color"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-color/50 transition-colors">
+                  <HiOutlineMail size={18} />
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="ejemplo@correo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                  required
+                />
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -67,25 +74,30 @@ export default function Login() {
               >
                 Contraseña
               </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-dark-bg border border-border-color rounded-lg px-4 py-3  placeholder-gray-600 focus:outline-none transition-all duration-200 text-text-color"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-color/50 transition-colors">
+                  <GiPadlock size={18} />
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border border-border-color text-white placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                  required
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="mt-4 w-full bg-secondary-green text-black font-bold py-3.5 rounded-lg hover:bg-secondary-green-hover active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(19,236,91,0.2)] hover:shadow-[0_0_30px_rgba(19,236,91,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center cursor-pointer"
+              className="gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all duration-300 bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 w-full flex items-center justify-center"
             >
               {loading ? (
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-black"
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
