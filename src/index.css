@@ -13,6 +13,7 @@
   --color-border-color: ;
 
   --color-text-color: ;
+  --color-text-color-green: ;
 
   --font-display: ;
   --radius-lg: ;
@@ -20,10 +21,9 @@
 }
 
 :root {
-  --color-primary: #34b234;
-  --color-primary-hover: #2e9e2e;
+  --color-primary: #5ccd5b;
 
-  --color-secondary-green: #77dd77;
+  --color-secondary-green: #93e392;
 
   --color-background-color: #121212;
 
@@ -31,6 +31,7 @@
   --color-border-color: #2b362b;
 
   --color-text-color: #bebebe;
+  --color-text-color-green: #8aac89;
 
   --font-display: "Lexend", sans-serif;
   --radius-lg: 1rem;
