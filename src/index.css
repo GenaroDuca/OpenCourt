@@ -35,9 +35,30 @@
 
   --font-display: "Lexend", sans-serif;
   --radius-lg: 1rem;
-  --radius-xl: 3rem;
+  --radius-xl:2rem;
 }
 
 body {
   font-family: var(--font-display);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-color);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary);
 }

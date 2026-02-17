@@ -1,6 +1,12 @@
 import React from "react";
 import { useState } from "react";
-import { BsPerson, BsTelephone, BsX, BsCheckLg } from "react-icons/bs";
+import {
+  BsPerson,
+  BsTelephone,
+  BsX,
+  BsCheckLg,
+  BsChevronDown,
+} from "react-icons/bs";
 import { IoIosPodium } from "react-icons/io";
 
 import toast from "react-hot-toast";
@@ -11,7 +17,21 @@ export default function NewPlayerForm({ isOpen, onClose }) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [category, setCategory] = useState("");
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
+
+  const CATEGORIES = [
+    "Damas A",
+    "Dama B",
+    "Dama C",
+    "Caballero 1ra",
+    "Caballero 2da",
+    "Caballero Intermedia",
+    "Caballero 3ra",
+    "Caballero 4ta",
+    "Caballero 5ta",
+    "Caballero 6ta",
+  ];
   const [loading, setLoading] = useState(false);
 
   const handlePhoneChange = (e) => {
@@ -151,26 +171,68 @@ export default function NewPlayerForm({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Category Input */}
-              <div className="flex flex-col gap-2 group">
-                <label
-                  htmlFor="category"
-                  className="text-sm font-medium text-text-color transition-colors"
-                >
+              {/* Category Dropdown */}
+              <div className="flex flex-col gap-2 group relative">
+                <label className="text-sm font-medium text-text-color transition-colors">
                   Categoría (Opcional)
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-color/50 transition-colors">
-                    <IoIosPodium size={18} />
+                  {/* Trigger */}
+                  <div
+                    onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                    className={`w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                      isCategoryOpen
+                        ? "border-primary ring-1 ring-primary/50"
+                        : "border-border-color hover:border-primary/30"
+                    }`}
+                  >
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-color/50">
+                      <IoIosPodium size={18} />
+                    </div>
+
+                    <span
+                      className={
+                        category ? "text-text-color" : "text-text-color/50"
+                      }
+                    >
+                      {category || "Seleccionar categoría"}
+                    </span>
+
+                    <div
+                      className={`transition-transform duration-300 ${isCategoryOpen ? "rotate-180" : ""}`}
+                    >
+                      <BsChevronDown size={14} className="text-text-color/50" />
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    id="category"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
-                    placeholder="Ej. Dama A"
-                    value={category}
-                    onChange={handleCategoryChange}
-                  />
+
+                  {/* Options List */}
+                  <div
+                    className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-xl overflow-hidden shadow-xl transition-all duration-300 origin-top ${
+                      isCategoryOpen
+                        ? "opacity-100 translate-y-0 scale-100 visible"
+                        : "opacity-0 -translate-y-2 scale-95 invisible pointer-events-none"
+                    }`}
+                  >
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-2">
+                      {CATEGORIES.map((cat) => (
+                        <div
+                          key={cat}
+                          onClick={() => {
+                            setCategory(cat);
+                            setIsCategoryOpen(false);
+                          }}
+                          className={`px-4 py-2.5 rounded-xl cursor-pointer text-sm transition-colors flex items-center justify-between  ${
+                            category === cat
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-text-color hover:bg-white/5"
+                          }`}
+                        >
+                          {cat}
+                          {category === cat && <BsCheckLg size={14} />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
