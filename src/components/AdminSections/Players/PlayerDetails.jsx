@@ -89,7 +89,7 @@ export default function PlayerDetails() {
     }) || [];
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
+    <div className="flex flex-col gap-6 w-full  pb-10">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-text-color/50 text-sm font-medium">
         <Link
