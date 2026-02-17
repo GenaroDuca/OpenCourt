@@ -17,17 +17,18 @@ export default function Players() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
 
+  const fetchPlayers = async () => {
+    try {
+      const data = await getPlayers();
+      setPlayers(data);
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const data = await getPlayers();
-        setPlayers(data);
-      } catch (error) {
-        console.error("Error fetching players:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPlayers();
   }, []);
 
@@ -60,6 +61,7 @@ export default function Players() {
       <NewPlayerForm
         isOpen={isAddingPlayer}
         onClose={() => setIsAddingPlayer(false)}
+        onPlayerAdded={fetchPlayers}
       />
       <PlayersHeader setIsAddingPlayer={setIsAddingPlayer} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">

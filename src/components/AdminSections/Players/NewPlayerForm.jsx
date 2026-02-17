@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 
 import { createPlayer } from "../../../services/playerService";
 
-export default function NewPlayerForm({ isOpen, onClose }) {
+export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [category, setCategory] = useState("");
@@ -67,8 +67,10 @@ export default function NewPlayerForm({ isOpen, onClose }) {
         setPhone("");
         setIsStudent(false);
         setLoading(false);
+        if (onPlayerAdded) {
+          onPlayerAdded();
+        }
         onClose();
-        window.location.reload();
       }
     }
   };
