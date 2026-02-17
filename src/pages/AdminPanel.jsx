@@ -9,7 +9,7 @@ import Payments from "../components/AdminSections/Payments/Payments";
 export default function AdminPanel() {
   return (
     <>
-      <div className="flex h-screen bg-dark-b overflow-hidden">
+      <div className="flex h-screen bg-dark-b overflow-hidden md:flex-row flex-col">
         <Sidebar />
 
         <div className="flex flex-col flex-1 overflow-hidden">

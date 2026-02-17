@@ -50,31 +50,31 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="h-full flex flex-col justify-between">
-      <ul className="flex flex-col gap-4 mt-6">
+    <nav className="h-full flex md:flex-col justify-between">
+      <ul className="flex md:flex-col gap-4 md:mt-6">
         <li>
           <Link to="/admin-panel/bookings" className={getLinkClass("bookings")}>
             <IoIosTennisball size={20} />
-            <span className="cursor-pointer">Reservas</span>
+            <span className="cursor-pointer hidden md:block">Reservas</span>
           </Link>
         </li>
         <li>
           <Link to="/admin-panel/players" className={getLinkClass("players")}>
             <BsPeopleFill size={20} />
-            <span className="cursor-pointer">Jugadores</span>
+            <span className="cursor-pointer hidden md:block">Jugadores</span>
           </Link>
         </li>
         <li>
           <Link to="/admin-panel/payments" className={getLinkClass("payments")}>
             <FaMoneyBills size={20} />
-            <span className="cursor-pointer">Pagos</span>
+            <span className="cursor-pointer hidden md:block">Pagos</span>
           </Link>
         </li>
       </ul>
-      <ul className="flex flex-col gap-1 mt-6">
+      <ul className="flex flex-col gap-1 md:mt-6">
         <li className={getLinkClass("logout")} onClick={handleLogout}>
           <TbLogout size={20} />
-          <span className="cursor-pointer">Cerrar Sesión</span>
+          <span className="cursor-pointer hidden md:block">Cerrar Sesión</span>
         </li>
       </ul>
     </nav>
