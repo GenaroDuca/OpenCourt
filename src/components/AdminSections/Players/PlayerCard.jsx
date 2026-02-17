@@ -6,7 +6,10 @@ import {
   BsCheckCircleFill,
 } from "react-icons/bs";
 
+import { useNavigate } from "react-router-dom";
+
 export default function PlayerCard({ data }) {
+  const navigate = useNavigate();
   // Calculate stats from bookings
   const bookings = data.booking_players || [];
 
@@ -22,7 +25,10 @@ export default function PlayerCard({ data }) {
   const hasPendingPayment = bookings.some((booking) => !booking.is_paid);
 
   return (
-    <div className="bg-background-card-color border border-border-color p-6 rounded-[2rem] flex flex-col gap-6 hover:border-primary/50 transition-all duration-300 group relative overflow-hidden cursor-pointer">
+    <div
+      onClick={() => navigate(`/admin-panel/players/${data.id}`)}
+      className="bg-background-card-color border border-border-color p-6 rounded-[2rem] flex flex-col gap-6 hover:border-primary/50 transition-all duration-300 group relative overflow-hidden cursor-pointer"
+    >
       {/* Glow effect */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -z-10 transition-all duration-500 group-hover:bg-primary/10"></div>
 
