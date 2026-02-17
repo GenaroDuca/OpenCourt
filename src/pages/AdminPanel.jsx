@@ -1,10 +1,9 @@
 import { useState } from "react";
-import Header from "../components/Header/Header";
+
 import Sidebar from "../components/Sidebar/Sidebar";
 import Bookings from "../components/AdminSections/Bookings";
 import Players from "../components/AdminSections/Players";
 import Payments from "../components/AdminSections/Payments";
-import Settings from "../components/AdminSections/Settings";
 
 export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState("bookings");
@@ -17,8 +16,6 @@ export default function AdminPanel() {
         return <Players />;
       case "payments":
         return <Payments />;
-      case "settings":
-        return <Settings />;
       default:
         return <Bookings />;
     }
@@ -33,7 +30,6 @@ export default function AdminPanel() {
         />
 
         <div className="flex flex-col flex-1 overflow-hidden">
-          <Header />
           <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {renderSection()}
           </main>
