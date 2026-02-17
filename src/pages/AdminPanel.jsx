@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 import Sidebar from "../components/Sidebar/Sidebar";
-import Bookings from "../components/AdminSections/Bookings";
-import Players from "../components/AdminSections/Players";
-import Payments from "../components/AdminSections/Payments";
+import Bookings from "../components/AdminSections/Bookings/Bookings";
+import Players from "../components/AdminSections/Players/Players";
+import Payments from "../components/AdminSections/Payments/Payments";
 
 export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState("bookings");

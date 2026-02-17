@@ -3,7 +3,7 @@ import Brand from "./Brand";
 
 export default function Sidebar({ activeSection, setActiveSection }) {
   return (
-    <aside className="w-64 bg-background-card-color border-0 border-r border-border-color flex flex-col p-4">
+    <aside className="w-64 bg-background-card-color flex flex-col p-4">
       <Brand />
       <Navbar
         activeSection={activeSection}
