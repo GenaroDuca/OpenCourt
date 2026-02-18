@@ -142,7 +142,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
                   <input
                     type="text"
                     id="name"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                    className="w-full pl-11 pr-4 py-2 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
                     placeholder="Ej. Juan Pérez"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
@@ -165,7 +165,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
                   <input
                     type="tel"
                     id="phone"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                    className="w-full pl-11 pr-4 py-2 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
                     placeholder="Ej. 2284 567890"
                     value={phone}
                     onChange={handlePhoneChange}
@@ -182,7 +182,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
                   {/* Trigger */}
                   <div
                     onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                    className={`w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color  text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                    className={`w-full pl-11 pr-4 py-2 rounded-lg bg-background-color  text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
                       isCategoryOpen
                         ? "border-primary ring-1 ring-primary/50"
                         : "border-border-color hover:border-primary/30"
