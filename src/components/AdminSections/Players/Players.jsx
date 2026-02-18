@@ -64,7 +64,7 @@ export default function Players() {
         onPlayerAdded={fetchPlayers}
       />
       <PlayersHeader setIsAddingPlayer={setIsAddingPlayer} />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mt-4 md:mt-4">
         <StatsCard
           title="Total de Alumnos"
           value={totalStudents}
@@ -84,7 +84,7 @@ export default function Players() {
           color="purple"
         />
         <StatsCard
-          title="Alumnos que deben pagar"
+          title="Alumnos que deben"
           value={studentsWithDebt}
           icon={<TiWarning size={24} />}
           color="yellow"

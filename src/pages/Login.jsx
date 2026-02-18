@@ -33,7 +33,7 @@ export default function Login() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
       <div className="relative z-10 w-full max-w-md">
-        <div className="bg-background-card-color border border-border-color rounded-4xl shadow-2xl p-6">
+        <div className="bg-background-card-color border border-border-color rounded-lg shadow-2xl p-4">
           <div className="flex flex-col items-center mb-8">
             <h1 className="text-3xl font-bold font-display mb-2 text-white">
               Bienvenido
@@ -61,7 +61,7 @@ export default function Login() {
                   placeholder="ejemplo@correo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
                   required
                 />
               </div>
@@ -84,7 +84,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border border-border-color text-white placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-white placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
                   required
                 />
               </div>
@@ -93,7 +93,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all duration-300 bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 w-full flex items-center justify-center"
+              className="gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 w-full flex items-center justify-center"
             >
               {loading ? (
                 <svg

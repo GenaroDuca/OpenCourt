@@ -10,12 +10,9 @@ import { useNavigate } from "react-router-dom";
 
 export default function PlayerCard({ data }) {
   const navigate = useNavigate();
-  // Calculate stats from bookings
   const bookings = data.booking_players || [];
 
   const totalContributed = bookings.reduce((sum, booking) => {
-    // Only count paid bookings for "Total Aportado"? Or all? Usually "Aportado" means paid.
-    // Let's assume paid only.
     if (booking.is_paid) {
       return sum + (Number(booking.individual_price) || 0);
     }
@@ -27,7 +24,7 @@ export default function PlayerCard({ data }) {
   return (
     <div
       onClick={() => navigate(`/admin-panel/players/${data.id}`)}
-      className="bg-background-card-color border border-border-color p-6 rounded-[2rem] flex flex-col gap-6 hover:border-primary/50 transition-all duration-300 group relative overflow-hidden cursor-pointer"
+      className="bg-background-card-color border border-border-color p-4  rounded-lg md:rounded-lg flex flex-col gap-2 md:gap-4 hover:border-primary/50 transition-all duration-300 group relative overflow-hidden cursor-pointer"
     >
       {/* Glow effect */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -z-10 transition-all duration-500 group-hover:bg-primary/10"></div>
@@ -100,7 +97,7 @@ export default function PlayerCard({ data }) {
             })}
           </span>
         </div>
-        <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-text-color hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 shadow-lg cursor-pointer">
+        <button className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-text-color hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 shadow-lg cursor-pointer">
           <BsChevronRight size={16} />
         </button>
       </div>

@@ -34,8 +34,7 @@
   --color-text-color-green: #8aac89;
 
   --font-display: "Lexend", sans-serif;
-  --radius-lg: 1rem;
-  --radius-xl:2rem;
+  --radius-lg: 1.5rem;
 }
 
 body {
