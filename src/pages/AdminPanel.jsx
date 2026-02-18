@@ -13,7 +13,7 @@ export default function AdminPanel() {
         <Sidebar />
 
         <div className="flex flex-col flex-1 overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <main className="flex-1 overflow-y-auto p-2 md:p-4 custom-scrollbar">
             <Routes>
               <Route path="bookings" element={<Bookings />} />
               <Route path="players" element={<Players />} />

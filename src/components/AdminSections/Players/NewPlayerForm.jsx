@@ -96,16 +96,16 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
         }`}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-6 border-b border-border-color bg-white/5">
+        <div className="flex justify-between items-center md:p-4 p-2 border-b border-border-color bg-white/5">
           <div>
-            <h2 className="text-2xl font-bold text-white">Nuevo Jugador</h2>
-            <p className="text-sm text-text-color/60">
+            <h2 className="text-xl md:text-3xl font-bold text-white">Nuevo Jugador</h2>
+            <p className="text-xs md:text-sm text-text-color/60">
               Ingresa los datos del nuevo jugador
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
+            className="md:p-2 p-0.5 rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
           >
             <BsX size={24} />
           </button>
@@ -117,8 +117,8 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
           onSubmit={handleSubmit}
           className="h-full flex flex-col"
         >
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 flex flex-col gap-6">
+          <div className="flex-1 overflow-y-auto md:px-4 px-2 mt-4">
+            <div className=" flex flex-col gap-4">
               <div className="flex items-center gap-3 text-primary mb-2">
                 <span className="h-px flex-1 bg-border-color"></span>
                 <span className="uppercase text-xs font-bold tracking-widest text-text-color-green">
@@ -142,7 +142,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
                   <input
                     type="text"
                     id="name"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
                     placeholder="Ej. Juan Pérez"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
@@ -165,7 +165,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
                   <input
                     type="tel"
                     id="phone"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
                     placeholder="Ej. 2284 567890"
                     value={phone}
                     onChange={handlePhoneChange}
@@ -182,7 +182,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
                   {/* Trigger */}
                   <div
                     onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                    className={`w-full pl-11 pr-4 py-3.5 rounded-xl bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                    className={`w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color  text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
                       isCategoryOpen
                         ? "border-primary ring-1 ring-primary/50"
                         : "border-border-color hover:border-primary/30"
@@ -209,7 +209,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
 
                   {/* Options List */}
                   <div
-                    className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-xl overflow-hidden shadow-xl transition-all duration-300 origin-top ${
+                    className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
                       isCategoryOpen
                         ? "opacity-100 translate-y-0 scale-100 visible"
                         : "opacity-0 -translate-y-2 scale-95 invisible pointer-events-none"
@@ -223,7 +223,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
                             setCategory(cat);
                             setIsCategoryOpen(false);
                           }}
-                          className={`px-4 py-2.5 rounded-xl cursor-pointer text-sm transition-colors flex items-center justify-between  ${
+                          className={`px-4 py-2.5 rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between  ${
                             category === cat
                               ? "bg-primary/10 text-primary font-medium"
                               : "text-text-color hover:bg-white/5"
@@ -260,16 +260,16 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-border-color bg-white/5 flex gap-4">
+          <div className="p-4 border-t border-border-color bg-white/5 flex gap-4">
             <button
               onClick={onClose}
-              className="gap-3 px-4 py-3 rounded-xl border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
+              className="gap-3 px-4 py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
             >
               Cancelar
             </button>
             <button
               disabled={!isFormValid || loading}
-              className={`gap-3 px-4 py-3 rounded-xl border transition-all duration-300 w-full font-bold flex items-center justify-center
+              className={`gap-3 px-4 py-3 rounded-lg border transition-all duration-300 w-full font-bold flex items-center justify-center
                 ${
                   isFormValid && !loading
                     ? "bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
@@ -279,7 +279,7 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
               {loading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
               ) : (
-                "Guardar Jugador"
+                "Guardar"
               )}
             </button>
           </div>

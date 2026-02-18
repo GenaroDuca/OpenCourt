@@ -7,7 +7,7 @@ export default function PlayersFilter({
   setFilterType,
 }) {
   return (
-    <div className="flex flex-col md:flex-row gap-4 justify-between items-center mt-6 bg-background-card-color p-4 rounded-3xl border border-border-color">
+    <div className="flex flex-col md:flex-row  md:gap-4 gap-2 justify-between items-center mt-2 md:mt-4 bg-background-card-color p-4 rounded-lg md:rounded-lg border border-border-color">
       {/* Search Input */}
       <div className="relative w-full flex-1">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-color/50">
@@ -15,7 +15,7 @@ export default function PlayersFilter({
         </div>
         <input
           type="text"
-          className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-background-color border border-border-color text-text-color placeholder-text-color/50 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300 font-light"
+          className="w-full pl-11 pr-4 py-2.5 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/50 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300 font-light"
           placeholder="Search players by name, email or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -23,20 +23,20 @@ export default function PlayersFilter({
       </div>
 
       {/* Filter Buttons */}
-      <div className="flex p-1.5 bg-background-color rounded-xl border border-border-color">
+      <div className="flex justify-between p-1.5 bg-background-color rounded-lg border border-border-color w-full md:w-auto">
         <button
           onClick={() => setFilterType("all")}
-          className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+          className={`md:px-6 px-2 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
             filterType === "all"
               ? "bg-background-card-color text-white shadow-lg"
               : "text-text-color/40 hover:text-text-color/80"
           }`}
         >
-          All
+          Todos
         </button>
         <button
           onClick={() => setFilterType("student")}
-          className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+          className={`md:px-6 px-2 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
             filterType === "student"
               ? "bg-background-card-color text-white shadow-lg"
               : "text-text-color/40 hover:text-text-color/80"
@@ -46,7 +46,7 @@ export default function PlayersFilter({
         </button>
         <button
           onClick={() => setFilterType("non_student")}
-          className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+          className={`md:px-6 px-2 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
             filterType === "non_student"
               ? "bg-background-card-color text-white shadow-lg"
               : "text-text-color/40 hover:text-text-color/80"

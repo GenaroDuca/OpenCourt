@@ -89,7 +89,7 @@ export default function PlayerDetails() {
     }) || [];
 
   return (
-    <div className="flex flex-col gap-6 w-full  pb-10">
+    <div className="flex flex-col gap-4 w-full pb-10">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-text-color/50 text-sm font-medium">
         <Link
@@ -103,9 +103,9 @@ export default function PlayerDetails() {
       </div>
 
       {/* Top Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Profile Card */}
-        <div className="lg:col-span-2 bg-background-card-color border border-border-color rounded-3xl p-8 relative overflow-hidden group">
+        <div className="lg:col-span-2 bg-background-card-color border border-border-color rounded-lg p-4 relative overflow-hidden group">
           {/* Background Glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-500"></div>
 
@@ -119,7 +119,7 @@ export default function PlayerDetails() {
 
             {/* Info */}
             <div className="flex-1 w-full">
-              <div className="flex items-center gap-4 mb-2">
+              <div className="flex items-center gap-4 mb-2 flex-wrap">
                 <h1 className="text-3xl font-bold text-white tracking-tight">
                   {player.full_name}
                 </h1>
@@ -140,8 +140,8 @@ export default function PlayerDetails() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-background-color border border-border-color flex items-center gap-4 group/box transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <div className="p-4 rounded-lg bg-background-color border border-border-color flex items-center gap-4 group/box transition-all">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                     <BsTelephone size={18} />
                   </div>
                   <div className="flex flex-col">
@@ -159,9 +159,9 @@ export default function PlayerDetails() {
         </div>
 
         {/* Payment Status Card */}
-        <div className="bg-[#123618] border border-primary/20 rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-[#123618] border border-primary/20 rounded-lg p-8 flex flex-col justify-between relative overflow-hidden">
           {/* Decor */}
-          <div className="absolute top-0 right-0 p-6 opacity-20">
+          <div className="absolute top-0 right-0 p-4 opacity-20">
             <BsWallet2 size={64} className="text-primary" />
           </div>
 
@@ -177,7 +177,7 @@ export default function PlayerDetails() {
             </span>
           </div>
 
-          <button className="w-full py-4 bg-primary text-black font-bold rounded-xl hover:bg-[#4ab849] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 mt-8">
+          <button className="w-full py-4 bg-primary text-black font-bold rounded-lg hover:bg-[#4ab849] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 mt-8">
             <BsWallet2 size={18} />
             <span>Registrar Pago</span>
           </button>
@@ -185,7 +185,7 @@ export default function PlayerDetails() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center justify-between mt-4">
+      <div className="flex items-center justify-between">
         <div className="flex gap-8 border-b border-white/10 w-full relative ">
           {["bookings", "payments", "evaluations"].map((tab) => (
             <button
@@ -199,7 +199,7 @@ export default function PlayerDetails() {
             >
               {tab === "bookings" && "Historial de Reservas"}
               {tab === "payments" && "Pagos Recientes"}
-              
+
               {activeTab === tab && (
                 <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(92,205,91,0.5)]"></div>
               )}
@@ -215,7 +215,7 @@ export default function PlayerDetails() {
       </div>
 
       {/* Content Area - Table */}
-      <div className="bg-background-card-color border border-border-color rounded-3xl overflow-hidden mt-2">
+      <div className="bg-background-card-color border border-border-color rounded-lg overflow-hidden mt-2">
         {/* Table Header */}
         <div className="grid grid-cols-6 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
           <div>Fecha</div>
@@ -237,7 +237,7 @@ export default function PlayerDetails() {
                   {booking.date}
                 </div>
                 <div className="col-span-2 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                     <BsClockHistory size={14} />
                   </div>
                   <span className="text-text-color font-medium text-sm">
@@ -252,7 +252,7 @@ export default function PlayerDetails() {
                 </div>
                 <div>
                   <span
-                    className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                       booking.status === "Pagado"
                         ? "bg-green-500/10 text-green-500 border-green-500/20"
                         : "bg-red-500/10 text-red-500 border-red-500/20"

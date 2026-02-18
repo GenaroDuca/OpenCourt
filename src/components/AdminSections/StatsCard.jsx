@@ -32,23 +32,22 @@ export const StatsCard = ({ title, value, icon, color = "green" }) => {
 
   return (
     <div
-      className={`bg-background-card-color border border-border-color p-6 rounded-[2rem] flex flex-col gap-4 transition-all duration-300 group relative overflow-hidden ${currentStyle.border}`}
+      className={`bg-background-card-color border border-border-color p-4 md:p-4 rounded-lg md:rounded-lg flex flex-col justify-between md:gap-4 gap-2 transition-all duration-300 group relative overflow-hidden ${currentStyle.border}`}
     >
-      {/* Glow effect */}
       <div
         className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -z-10 transition-all duration-500 ${currentStyle.glow}`}
       ></div>
 
       <div className="flex justify-between items-start">
         <div
-          className={`p-3.5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-300 ${currentStyle.icon}`}
+          className={`p-3.5 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-300 ${currentStyle.icon}`}
         >
           {icon}
         </div>
       </div>
 
       <div className="flex flex-col gap-1 mt-2">
-        <span className="text-text-color/60 text-[12px] font-bold tracking-widest uppercase">
+        <span className="text-text-color/60 md:text-[12px] text-[10px] font-bold tracking-widest uppercase">
           {title}
         </span>
         <span
