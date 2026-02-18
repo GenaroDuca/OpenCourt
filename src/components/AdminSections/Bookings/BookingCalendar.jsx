@@ -1,11 +1,12 @@
 import React from "react";
 import { BsPlus, BsPerson } from "react-icons/bs";
 
-// Generate 30 min slots from 09:00 to 22:00
 const TIME_SLOTS = [];
-for (let i = 9; i < 22; i++) {
+for (let i = 9; i < 24; i++) {
   TIME_SLOTS.push(`${i.toString().padStart(2, "0")}:00`);
-  TIME_SLOTS.push(`${i.toString().padStart(2, "0")}:30`);
+  if (i < 23) {
+    TIME_SLOTS.push(`${i.toString().padStart(2, "0")}:30`);
+  }
 }
 
 export default function BookingCalendar({
