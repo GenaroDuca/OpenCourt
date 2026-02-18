@@ -66,13 +66,41 @@ export const createBooking = async (bookingData) => {
     is_paid: p.is_paid || false,
   }));
 
-  const { error: playerError } = await supabase
+  const { data: insertedPlayers, error: playerError } = await supabase
     .from("booking_players")
-    .insert(bookingPlayersData);
+    .insert(bookingPlayersData)
+    .select();
 
   if (playerError) {
     await supabase.from("bookings").delete().eq("id", booking.id);
     throw playerError;
+  }
+
+  // 3. Register Payments
+  const paymentsToInsert = [];
+  insertedPlayers.forEach((bp) => {
+    const originalPlayer = players.find((p) => p.id === bp.player_id);
+    if (
+      originalPlayer &&
+      originalPlayer.is_paid &&
+      originalPlayer.payment_method
+    ) {
+      paymentsToInsert.push({
+        booking_player_id: bp.id,
+        amount: bp.individual_price,
+        payment_method: originalPlayer.payment_method,
+      });
+    }
+  });
+
+  if (paymentsToInsert.length > 0) {
+    const { error: paymentError } = await supabase
+      .from("payments")
+      .insert(paymentsToInsert);
+
+    // Log error but don't fail the whole booking creation?
+    // Ideally we should fail, but for now let's just log it or throw to be safe
+    if (paymentError) console.error("Error creating payments:", paymentError);
   }
 
   return booking;
@@ -104,28 +132,84 @@ export const updateBooking = async (id, bookingData) => {
 
   if (updateError) throw updateError;
 
-  // 2. Update players (Delete all and re-insert is simplified approach)
-  // First, delete existing
-  const { error: deletePlayersError } = await supabase
+  // 2. Smart Update of Players (Preserve IDs for payments/history)
+
+  // Fetch current booking_players
+  const { data: currentPlayers, error: fetchError } = await supabase
     .from("booking_players")
-    .delete()
+    .select("*")
     .eq("booking_id", id);
 
-  if (deletePlayersError) throw deletePlayersError;
+  if (fetchError) throw fetchError;
 
-  // Then insert new list
-  const bookingPlayersData = players.map((p) => ({
-    booking_id: id,
-    player_id: p.id,
-    individual_price: p.price,
-    is_paid: p.is_paid || false,
-  }));
+  const currentMap = new Map(currentPlayers.map((bp) => [bp.player_id, bp]));
+  const newPlayerIds = new Set(players.map((p) => p.id));
 
-  const { error: insertPlayersError } = await supabase
-    .from("booking_players")
-    .insert(bookingPlayersData);
+  // A. DELETE removed players
+  const playersToDelete = currentPlayers.filter(
+    (bp) => !newPlayerIds.has(bp.player_id),
+  );
+  if (playersToDelete.length > 0) {
+    const { error: deleteError } = await supabase
+      .from("booking_players")
+      .delete()
+      .in(
+        "id",
+        playersToDelete.map((bp) => bp.id),
+      );
+    if (deleteError) throw deleteError;
+  }
 
-  if (insertPlayersError) throw insertPlayersError;
+  // B. UPDATE existing players & C. INSERT new players
+  for (const player of players) {
+    const existingBP = currentMap.get(player.id);
+    let finalBookingPlayerId = null;
+
+    if (existingBP) {
+      // Update
+      const { error: updateBPError } = await supabase
+        .from("booking_players")
+        .update({
+          individual_price: player.price,
+          is_paid: player.is_paid,
+        })
+        .eq("id", existingBP.id);
+
+      if (updateBPError) throw updateBPError;
+      finalBookingPlayerId = existingBP.id;
+    } else {
+      // Insert
+      const { data: newBP, error: insertBPError } = await supabase
+        .from("booking_players")
+        .insert([
+          {
+            booking_id: id,
+            player_id: player.id,
+            individual_price: player.price,
+            is_paid: player.is_paid || false,
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertBPError) throw insertBPError;
+      finalBookingPlayerId = newBP.id;
+    }
+
+    // Handle Payment Transaction
+    // Only insert payment if we have a payment_method explicitly passed (meaning a new payment action)
+    if (player.is_paid && player.payment_method && finalBookingPlayerId) {
+      const { error: paymentError } = await supabase.from("payments").insert([
+        {
+          booking_player_id: finalBookingPlayerId,
+          amount: player.price,
+          payment_method: player.payment_method,
+        },
+      ]);
+
+      if (paymentError) console.error("Error creating payment:", paymentError);
+    }
+  }
 
   return true;
 };

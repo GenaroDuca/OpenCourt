@@ -15,8 +15,45 @@ import {
   updateBooking,
   deleteBooking,
 } from "../../../services/bookingService";
-import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+
+const getAvatarColor = (name) => {
+  const colors = [
+    "bg-red-200 text-red-800",
+    "bg-orange-200 text-orange-800",
+    "bg-amber-200 text-amber-800",
+    "bg-yellow-200 text-yellow-800",
+    "bg-lime-200 text-lime-800",
+    "bg-green-200 text-green-800",
+    "bg-emerald-200 text-emerald-800",
+    "bg-teal-200 text-teal-800",
+    "bg-cyan-200 text-cyan-800",
+    "bg-sky-200 text-sky-800",
+    "bg-blue-200 text-blue-800",
+    "bg-indigo-200 text-indigo-800",
+    "bg-violet-200 text-violet-800",
+    "bg-purple-200 text-purple-800",
+    "bg-fuchsia-200 text-fuchsia-800",
+    "bg-pink-200 text-pink-800",
+    "bg-rose-200 text-rose-800",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+const getInitials = (name) => {
+  if (!name) return "";
+  const names = name.trim().split(/\s+/);
+  let initials = names[0].substring(0, 1).toUpperCase();
+  if (names.length > 1) {
+    initials += names[names.length - 1].substring(0, 1).toUpperCase();
+  }
+  return initials;
+};
 
 // Generate 30 min slots for the dropdown
 const GENERATE_TIME_OPTIONS = () => {
@@ -58,6 +95,11 @@ export default function NewBookingModal({
 
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Payment Selection State
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlayerForPayment, setSelectedPlayerForPayment] =
+    useState(null);
 
   const timeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
@@ -192,12 +234,35 @@ export default function NewBookingModal({
     setSelectedPlayers(selectedPlayers.filter((p) => p.id !== id));
   };
 
-  const handleTogglePaid = (id) => {
-    setSelectedPlayers(
-      selectedPlayers.map((p) =>
-        p.id === id ? { ...p, is_paid: !p.is_paid } : p,
-      ),
-    );
+  const handleTogglePaid = (player) => {
+    if (player.is_paid) {
+      // Mark as pending (remove payment info)
+      setSelectedPlayers(
+        selectedPlayers.map((p) =>
+          p.id === player.id
+            ? { ...p, is_paid: false, payment_method: null }
+            : p,
+        ),
+      );
+    } else {
+      // Open payment modal
+      setSelectedPlayerForPayment(player);
+      setShowPaymentModal(true);
+    }
+  };
+
+  const confirmPayment = (method) => {
+    if (selectedPlayerForPayment) {
+      setSelectedPlayers(
+        selectedPlayers.map((p) =>
+          p.id === selectedPlayerForPayment.id
+            ? { ...p, is_paid: true, payment_method: method }
+            : p,
+        ),
+      );
+      setShowPaymentModal(false);
+      setSelectedPlayerForPayment(null);
+    }
   };
 
   const handleDelete = () => {
@@ -281,6 +346,7 @@ export default function NewBookingModal({
           id: p.id,
           price: p.price,
           is_paid: p.is_paid, // Pass payment status
+          payment_method: p.payment_method, // Pass payment method
         })),
       };
 
@@ -293,7 +359,12 @@ export default function NewBookingModal({
       }
 
       onBookingAdded();
-      // onClose();
+
+      if (bookingToEdit) {
+        onClose();
+      } else {
+        setSelectedPlayers([]);
+      }
     } catch (err) {
       console.error(err);
       toast.error(err.message || "Error al guardar la reserva");
@@ -515,13 +586,22 @@ export default function NewBookingModal({
                                 : "text-text-color hover:bg-white/5"
                             }`}
                           >
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                {player.full_name}
-                              </span>
-                              <span className="text-xs text-text-color/50">
-                                {player.is_student ? "Alumno" : "Visitante"}
-                              </span>
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(
+                                  player.full_name,
+                                )}`}
+                              >
+                                {getInitials(player.full_name)}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {player.full_name}
+                                </span>
+                                <span className="text-xs text-text-color/50">
+                                  {player.is_student ? "Alumno" : "Visitante"}
+                                </span>
+                              </div>
                             </div>
                             {isSelected ? (
                               <BsCheckLg size={16} className="text-primary" />
@@ -546,6 +626,13 @@ export default function NewBookingModal({
                     className="flex justify-between items-center bg-background-color p-3 rounded-lg border border-border-color group"
                   >
                     <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shrink-0 ${getAvatarColor(
+                          player.full_name,
+                        )}`}
+                      >
+                        {getInitials(player.full_name)}
+                      </div>
                       <div>
                         <Link
                           to={`/admin-panel/players/${player.id}`}
@@ -561,14 +648,18 @@ export default function NewBookingModal({
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        onClick={() => handleTogglePaid(player.id)}
+                        onClick={() => handleTogglePaid(player)}
                         className={`text-[10px] md:text-md font-bold px-2 py-1 rounded-lg border transition-colors cursor-pointer ${
                           player.is_paid
                             ? "bg-green-500/10 text-green-500 border-green-500/30 hover:bg-green-500/20"
                             : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
                         }`}
                       >
-                        {player.is_paid ? "PAGADO" : "PENDIENTE"}
+                        {player.is_paid
+                          ? player.payment_method === "Transferencia"
+                            ? "TRANSF."
+                            : "EFECTIVO"
+                          : "PENDIENTE"}
                       </button>
 
                       <span className="text-sm font-bold text-primary">
@@ -677,6 +768,47 @@ export default function NewBookingModal({
                 {loading ? "Eliminando..." : "Eliminar"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Method Modal */}
+      {showPaymentModal && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowPaymentModal(false)}
+          />
+          <div className="relative bg-background-card-color border border-white/10 p-6 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-lg font-bold text-white text-center">
+              Seleccionar Método de Pago
+            </h3>
+            <p className="text-text-color/70 text-center text-sm">
+              ¿Cómo realizó el pago {selectedPlayerForPayment?.full_name}?
+            </p>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => confirmPayment("Efectivo")}
+                className="py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500/20 transition-colors font-bold text-sm"
+              >
+                Efectivo
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmPayment("Transferencia")}
+                className="py-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500/20 transition-colors font-bold text-sm"
+              >
+                Transferencia
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPaymentModal(false)}
+              className="mt-2 w-full py-2 text-text-color/50 hover:text-white text-xs text-center"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}

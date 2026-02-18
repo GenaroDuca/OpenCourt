@@ -8,6 +8,44 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
+const getAvatarColor = (name) => {
+  const colors = [
+    "bg-red-200 text-red-800",
+    "bg-orange-200 text-orange-800",
+    "bg-amber-200 text-amber-800",
+    "bg-yellow-200 text-yellow-800",
+    "bg-lime-200 text-lime-800",
+    "bg-green-200 text-green-800",
+    "bg-emerald-200 text-emerald-800",
+    "bg-teal-200 text-teal-800",
+    "bg-cyan-200 text-cyan-800",
+    "bg-sky-200 text-sky-800",
+    "bg-blue-200 text-blue-800",
+    "bg-indigo-200 text-indigo-800",
+    "bg-violet-200 text-violet-800",
+    "bg-purple-200 text-purple-800",
+    "bg-fuchsia-200 text-fuchsia-800",
+    "bg-pink-200 text-pink-800",
+    "bg-rose-200 text-rose-800",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+const getInitials = (name) => {
+  if (!name) return "";
+  const names = name.trim().split(/\s+/);
+  let initials = names[0].substring(0, 1).toUpperCase();
+  if (names.length > 1) {
+    initials += names[names.length - 1].substring(0, 1).toUpperCase();
+  }
+  return initials;
+};
+
 export default function PlayerCard({ data }) {
   const navigate = useNavigate();
   const bookings = data.booking_players || [];
@@ -31,15 +69,19 @@ export default function PlayerCard({ data }) {
 
       {/* Header */}
       <div className="flex justify-between items-start">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-white/50 shadow-inner">
-          <BsPerson size={32} />
+        <div
+          className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold shadow-inner ${getAvatarColor(
+            data.full_name,
+          )}`}
+        >
+          {getInitials(data.full_name)}
         </div>
         <div className="flex flex-col items-end gap-1">
           <span className="text-[10px] font-bold tracking-widest text-text-color/50 uppercase">
             Status
           </span>
           {hasPendingPayment ? (
-            <div className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-500 text-xs font-bold">
+            <div className="px-3 py-1.5 rounded-lg bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 flex items-center gap-2 text-xs font-bold">
               <BsExclamationCircleFill size={10} />
               <span>PAGO PENDIENTE</span>
             </div>

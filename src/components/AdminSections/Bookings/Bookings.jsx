@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   BsCalendar3,
   BsChevronLeft,
@@ -22,6 +23,32 @@ export default function Bookings() {
   const [players, setPlayers] = useState([]);
   const [priceConfig, setPriceConfig] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const location = useLocation();
+  const [pendingBookingId, setPendingBookingId] = useState(null);
+
+  // Handle navigation from other pages (e.g. PlayerDetails)
+  useEffect(() => {
+    if (location.state?.bookingId && location.state?.date) {
+      const targetDate = new Date(location.state.date);
+      setPendingBookingId(location.state.bookingId);
+      setSelectedDate(targetDate);
+    }
+  }, [location]);
+
+  // Open pending booking once loaded
+  useEffect(() => {
+    if (pendingBookingId && bookings.length > 0) {
+      const booking = bookings.find((b) => b.id === pendingBookingId);
+      if (booking) {
+        setEditingBooking(booking);
+        setIsModalOpen(true);
+        setPendingBookingId(null);
+        // Clear state to prevent reopening
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [bookings, pendingBookingId]);
 
   const loadData = async () => {
     setLoading(true);
