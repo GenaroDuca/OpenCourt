@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   BsPerson,
   BsTelephone,
@@ -13,11 +13,50 @@ import {
 } from "react-icons/bs";
 import { supabase } from "../../../../supabaseClient";
 
+const getAvatarColor = (name) => {
+  const colors = [
+    "bg-red-200 text-red-800",
+    "bg-orange-200 text-orange-800",
+    "bg-amber-200 text-amber-800",
+    "bg-yellow-200 text-yellow-800",
+    "bg-lime-200 text-lime-800",
+    "bg-green-200 text-green-800",
+    "bg-emerald-200 text-emerald-800",
+    "bg-teal-200 text-teal-800",
+    "bg-cyan-200 text-cyan-800",
+    "bg-sky-200 text-sky-800",
+    "bg-blue-200 text-blue-800",
+    "bg-indigo-200 text-indigo-800",
+    "bg-violet-200 text-violet-800",
+    "bg-purple-200 text-purple-800",
+    "bg-fuchsia-200 text-fuchsia-800",
+    "bg-pink-200 text-pink-800",
+    "bg-rose-200 text-rose-800",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+const getInitials = (name) => {
+  if (!name) return "";
+  const names = name.trim().split(/\s+/);
+  let initials = names[0].substring(0, 1).toUpperCase();
+  if (names.length > 1) {
+    initials += names[names.length - 1].substring(0, 1).toUpperCase();
+  }
+  return initials;
+};
+
 export default function PlayerDetails() {
   const { id } = useParams();
   const [player, setPlayer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("bookings");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPlayer = async () => {
@@ -31,6 +70,32 @@ export default function PlayerDetails() {
           .single();
 
         if (error) throw error;
+
+        // Fetch payments separately to ensure no relationship issues
+        const bpIds = data.booking_players?.map((bp) => bp.id) || [];
+        let paymentsMap = {};
+
+        if (bpIds.length > 0) {
+          const { data: paymentsData, error: paymentsError } = await supabase
+            .from("payments")
+            .select("*")
+            .in("booking_player_id", bpIds);
+
+          if (!paymentsError && paymentsData) {
+            paymentsData.forEach((p) => {
+              paymentsMap[p.booking_player_id] = p;
+            });
+          }
+        }
+
+        // Attach payments to proper booking_players
+        if (data.booking_players) {
+          data.booking_players = data.booking_players.map((bp) => ({
+            ...bp,
+            payment: paymentsMap[bp.id] || null,
+          }));
+        }
+
         setPlayer(data);
       } catch (error) {
         console.error("Error fetching player details:", error);
@@ -63,7 +128,7 @@ export default function PlayerDetails() {
     }, 0) || 0;
 
   // Mock data for display based on image
-  const joinedDate = new Date(player.created_at).toLocaleDateString("en-US", {
+  const joinedDate = new Date(player.created_at).toLocaleDateString("es-AR", {
     month: "long",
     year: "numeric",
     day: "numeric",
@@ -79,6 +144,8 @@ export default function PlayerDetails() {
       const end = new Date(booking.end_time);
       const duration = (end - start) / (1000 * 60); // minutes
 
+      const payment = bp.payment;
+
       return {
         id: bp.id,
         date: start.toLocaleDateString("es-AR", {
@@ -93,12 +160,32 @@ export default function PlayerDetails() {
           hour: "2-digit",
           minute: "2-digit",
         })}`,
-        courtDetail: courtName, // Mock "Cancha de Arcilla #2"
+        courtDetail: courtName,
         duration: `${duration} min`,
         amount: `$${bp.individual_price}`,
         status: bp.is_paid ? "Pagado" : "Pendiente",
+        paymentMethod: payment?.payment_method || "-",
+        paidAt: payment?.paid_at
+          ? new Date(payment.paid_at).toLocaleDateString("es-AR", {
+              day: "numeric",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "-",
+        rawDate: booking.start_time, // For navigation
+        bookingId: booking.id, // Booking ID (not booking_player id)
       };
     }) || [];
+
+  const handleBookingClick = (booking) => {
+    navigate("/admin-panel/bookings", {
+      state: {
+        bookingId: booking.bookingId,
+        date: booking.rawDate,
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col gap-4 w-full pb-10">
@@ -124,8 +211,12 @@ export default function PlayerDetails() {
           <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start">
             {/* Avatar */}
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/10 flex items-center justify-center">
-                <BsPerson size={48} className="text-white/50" />
+              <div
+                className={`w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold shadow-2xl ring-4 ring-white/5 ${getAvatarColor(
+                  player.full_name,
+                )}`}
+              >
+                {getInitials(player.full_name)}
               </div>
             </div>
 
@@ -148,17 +239,17 @@ export default function PlayerDetails() {
               </div>
               <div className="flex gap-2 text-text-color/60 text-sm mb-6 flex-col ">
                 <span className="text-primary">ID: #{player.id}</span>
-                <span>Joined {joinedDate}</span>
+                <span>Registrado el {joinedDate}</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-background-color border border-border-color flex items-center gap-4 group/box transition-all">
+                <div className=" rounded-lg flex items-center gap-4 group/box transition-all">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                     <BsTelephone size={18} />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] text-text-color/50 font-bold uppercase tracking-wider">
-                      Phone
+                      Teléfono
                     </span>
                     <span className="text-white font-medium">
                       {player.phone || "Sin teléfono"}
@@ -176,7 +267,7 @@ export default function PlayerDetails() {
             <span className="text-yellow-500 font-bold text-xs tracking-widest uppercase mb-1 block">
               Saldo Pendiente
             </span>
-            <span className="text-4xl font-black text-white font-display tracking-tighter">
+            <span className="text-2xl font-black text-white font-display tracking-tighter">
               ${pendingDebt.toLocaleString()}
             </span>
           </div>
@@ -187,7 +278,7 @@ export default function PlayerDetails() {
             <span className="text-green-500 font-bold text-xs tracking-widest uppercase mb-1 block">
               Valor Aportado
             </span>
-            <span className="text-4xl font-black text-white font-display tracking-tighter">
+            <span className="text-2xl font-black text-white font-display tracking-tighter">
               ${totalContributed.toLocaleString()}
             </span>
           </div>
@@ -215,23 +306,18 @@ export default function PlayerDetails() {
               )}
             </button>
           ))}
-
-          {/* Export CSV Button (absolute right) */}
-          {/* <button className="absolute right-0 top-0 pb-3 flex items-center gap-2 text-primary text-xs font-bold hover:text-white transition-colors">
-            <BsDownload size={14} />
-            <span>Exportar CSV</span>
-          </button> */}
         </div>
       </div>
 
       {/* Content Area - Table */}
       <div className="bg-background-card-color border border-border-color rounded-lg overflow-hidden mt-2">
         {/* Table Header */}
-        <div className="hidden md:grid md:grid-cols-6 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
+        <div className="hidden md:grid md:grid-cols-5 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
           <div>Fecha</div>
-          <div className="col-span-2">Cancha</div>
+          <div>Cancha</div>
           <div>Importe</div>
-          <div>Estado</div>
+          <div>Método Pago</div>
+          <div className="text-right md:text-left">Estado</div>
         </div>
 
         {/* Table Body */}
@@ -240,25 +326,40 @@ export default function PlayerDetails() {
             bookings.map((booking) => (
               <div
                 key={booking.id}
-                className="grid grid-cols-2 md:grid-cols-6 gap-x-4 gap-y-2 p-4 md:p-5 border-b border-white/5 items-center hover:bg-white/5 transition-colors group"
+                onClick={() => handleBookingClick(booking)}
+                className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 rounded-b-lg border-border-color hover:bg-white/5 transition-colors items-center cursor-pointer group"
               >
-                <div className="flex flex-col col-span-1 md:col-span-1">
-                  <span className="text-white font-medium text-sm">
+                {/* Date */}
+                <div className="flex flex-col col-span-2 md:col-span-1 order-1 md:order-1">
+                  <span className="text-white font-bold text-sm">
                     {booking.date}
                   </span>
-                  <span className="text-xs text-text-color/50">
+                  <span className="text-text-color/50 text-xs flex items-center gap-1">
                     {booking.time}
                   </span>
                 </div>
-                <div className="col-span-2 md:col-span-2 flex items-center gap-2">
-                  <span className="text-text-color font-medium text-sm">
-                    {booking.courtDetail}
-                  </span>
+                {/* Court */}
+                <div className="text-text-color/70 text-sm col-span-2 md:col-span-1 order-3 md:order-2 group-hover:text-primary transition-colors truncate">
+                  {booking.courtDetail}
                 </div>
-                <div className="text-white font-bold text-sm col-span-1 md:col-span-1">
+
+                {/* Amount */}
+                <div className="text-white font-bold text-sm col-span-1 md:col-span-1 order-4 md:order-3">
                   {booking.amount}
                 </div>
-                <div>
+
+                {/* Payment Info */}
+                <div className="flex flex-col col-span-1 md:col-span-1 order-5 md:order-4">
+                  <span className="text-xs text-white font-bold uppercase">
+                    {booking.paymentMethod}
+                  </span>
+                  <span className="text-[10px] text-text-color/50">
+                    {booking.paidAt}
+                  </span>
+                </div>
+
+                {/* Status */}
+                <div className="col-span-2 md:col-span-1 flex justify-start md:justify-start order-2 md:order-5">
                   <span
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                       booking.status === "Pagado"

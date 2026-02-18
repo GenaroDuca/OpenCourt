@@ -79,16 +79,20 @@ export default function BookingCalendar({
                 const occupied = isSlotOccupied(court.id, slot);
 
                 if (booking) {
-                  const players =
-                    booking.booking_players
-                      ?.map((bp) => bp.players?.full_name)
-                      .join(", ") || "Desconocido";
+                  const bookingPlayers = booking.booking_players || [];
                   const isPaid = booking.booking_players?.every(
                     (bp) => bp.is_paid,
                   );
 
                   // Count total players
                   const count = booking.booking_players?.length || 0;
+
+                  // Calculate total value
+                  const totalValue =
+                    booking.booking_players?.reduce(
+                      (acc, bp) => acc + (Number(bp.individual_price) || 0),
+                      0,
+                    ) || 0;
 
                   // Calculate height based on duration
                   const start = new Date(booking.start_time);
@@ -154,10 +158,23 @@ export default function BookingCalendar({
                       </div>
 
                       {/* Content: Players */}
-                      <div className=" flex-1 flex flex-col justify-between md:justify-end relative z-10 min-h-0">
-                        <h4 className="font-bold text-[8px] whitespace-nowrap overflow-hidden text-ellipsis md:text-lg text-white leading-tight line-clamp-2 md:line-clamp-2 drop-shadow-sm group-hover:text-primary transition-colors">
-                          {players}
-                        </h4>
+                      <div className=" flex-1 flex flex-col justify-between md:justify-end relative z-10 min-h-0 gap-4">
+                        <div className="flex flex-col gap-0.5 overflow-hidden">
+                          {bookingPlayers.length > 0 ? (
+                            bookingPlayers.map((bp) => (
+                              <span
+                                key={bp.id}
+                                className="font-bold text-[8px] md:text-xl text-white leading-tight truncate drop-shadow-sm transition-colors block"
+                              >
+                                {bp.players?.full_name || "Desconocido"}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="font-bold text-[8px] md:text-sm text-white">
+                              Desconocido
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1 md:gap-2 text-primary/80 text-[8px] md:text-sm font-medium ">
                           <BsPerson
                             size={10}
@@ -172,7 +189,10 @@ export default function BookingCalendar({
 
                       {/* Bottom Layout: Status */}
                       <div className="flex items-end justify-center md:justify-end gap-1 relative z-10 mt-1">
-                        <div className="flex gap-1 flex-col ">
+                        <div className="flex gap-1 flex-col items-end">
+                          <span className="text-[10px] md:text-xs font-bold text-white drop-shadow-md pb-0.5">
+                            ${totalValue.toLocaleString()}
+                          </span>
                           <span
                             className={`hidden md:block text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded md:rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
                               isPaid

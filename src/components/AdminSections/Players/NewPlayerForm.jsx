@@ -25,6 +25,8 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
     "Damas A",
     "Dama B",
     "Dama C",
+    "Dama D",
+    "Principiante",
     "Caballero 1ra",
     "Caballero 2da",
     "Caballero Intermedia",
