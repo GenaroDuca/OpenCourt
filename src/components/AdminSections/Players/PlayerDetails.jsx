@@ -255,7 +255,7 @@ export default function PlayerDetails() {
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                       booking.status === "Pagado"
                         ? "bg-green-500/10 text-green-500 border-green-500/20"
-                        : "bg-red-500/10 text-red-500 border-red-500/20"
+                        : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
                     }`}
                   >
                     {booking.status}
