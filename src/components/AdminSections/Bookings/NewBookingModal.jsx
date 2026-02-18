@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 // Generate 30 min slots for the dropdown
 const GENERATE_TIME_OPTIONS = () => {
   const slots = [];
-  for (let i = 8; i < 23; i++) {
+  for (let i = 9; i < 22; i++) {
     slots.push(`${i.toString().padStart(2, "0")}:00`);
     slots.push(`${i.toString().padStart(2, "0")}:30`);
   }
@@ -100,7 +100,8 @@ export default function NewBookingModal({
         const targetDateStr = `${year}-${month}-${day}`;
         setDateStr(targetDateStr);
 
-        const targetStartTime = initialTime || "09:00";
+        let targetStartTime = initialTime || "09:00";
+        if (targetStartTime > "21:30") targetStartTime = "21:30";
         setStartTime(targetStartTime);
 
         if (initialCourtId) {
@@ -261,6 +262,11 @@ export default function NewBookingModal({
 
     setLoading(true);
     try {
+      if (startTime > "21:30") {
+        toast.error("El horario de inicio no puede ser mayor a 21:30");
+        setLoading(false);
+        return;
+      }
       const startDateTime = new Date(`${dateStr}T${startTime}`);
       const endDateTime = new Date(
         startDateTime.getTime() + DURATION_MINUTES * 60000,
@@ -323,17 +329,13 @@ export default function NewBookingModal({
             <h2 className="text-xl md:text-3xl font-bold text-white">
               {bookingToEdit ? "Editar Reserva" : "Nueva Reserva"}
             </h2>
-            <div className="flex items-center gap-2 text-text-color/60 text-xs md:text-sm mt-1">
-              <BsCalendar3 />
-              <span>
-                {dateStr &&
-                  new Date(`${dateStr}T00:00:00`).toLocaleDateString("es-ES", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}
-              </span>
-            </div>
+            <input
+              type="date"
+              value={dateStr}
+              onChange={(e) => setDateStr(e.target.value)}
+              style={{ colorScheme: "dark" }}
+              className="mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-text-color text-xs md:text-sm font-medium focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer hover:bg-white/10 shadow-sm"
+            />
           </div>
           <button
             onClick={onClose}
@@ -344,7 +346,7 @@ export default function NewBookingModal({
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="h-full flex flex-col">
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col">
           <div className="flex-1 overflow-y-auto md:px-4 px-2 mt-4 custom-scrollbar ">
             <div className="flex flex-col gap-4">
               {/* Separators */}
@@ -642,7 +644,7 @@ export default function NewBookingModal({
 
       {/* Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center p-4">
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setShowDeleteConfirm(false)}
