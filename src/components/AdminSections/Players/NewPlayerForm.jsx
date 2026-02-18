@@ -16,11 +16,12 @@ import { createPlayer } from "../../../services/playerService";
 export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("Sin Categoría");
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
 
   const CATEGORIES = [
+    "Sin Categoría",
     "Damas A",
     "Dama B",
     "Dama C",
@@ -65,12 +66,13 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
       } finally {
         setFullName("");
         setPhone("");
+        setCategory("Sin Categoría");
         setIsStudent(false);
         setLoading(false);
         if (onPlayerAdded) {
           onPlayerAdded();
         }
-        onClose();
+        // onClose();
       }
     }
   };
@@ -98,7 +100,9 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
         {/* Header */}
         <div className="flex justify-between items-center md:p-4 p-2 border-b border-border-color bg-white/5">
           <div>
-            <h2 className="text-xl md:text-3xl font-bold text-white">Nuevo Jugador</h2>
+            <h2 className="text-xl md:text-3xl font-bold text-white">
+              Nuevo Jugador
+            </h2>
             <p className="text-xs md:text-sm text-text-color/60">
               Ingresa los datos del nuevo jugador
             </p>

@@ -57,6 +57,11 @@ export default function PlayerDetails() {
       return !bp.is_paid ? acc + (Number(bp.individual_price) || 0) : acc;
     }, 0) || 0;
 
+  const totalContributed =
+    player.booking_players?.reduce((acc, bp) => {
+      return bp.is_paid ? acc + (Number(bp.individual_price) || 0) : acc;
+    }, 0) || 0;
+
   // Mock data for display based on image
   const joinedDate = new Date(player.created_at).toLocaleDateString("en-US", {
     month: "long",
@@ -81,6 +86,13 @@ export default function PlayerDetails() {
           month: "short",
           year: "numeric",
         }),
+        time: `${start.toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })} - ${end.toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`,
         courtDetail: courtName, // Mock "Cancha de Arcilla #2"
         duration: `${duration} min`,
         amount: `$${bp.individual_price}`,
@@ -96,7 +108,7 @@ export default function PlayerDetails() {
           to="/admin-panel/players"
           className="hover:text-primary transition-colors"
         >
-          Players
+          Jugadores
         </Link>
         <BsChevronRight size={10} />
         <span className="text-white">{player.full_name}</span>
@@ -109,7 +121,7 @@ export default function PlayerDetails() {
           {/* Background Glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-500"></div>
 
-          <div className="flex flex-col md:flex-row gap-8 items-start">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start">
             {/* Avatar */}
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/10 flex items-center justify-center">
@@ -159,28 +171,26 @@ export default function PlayerDetails() {
         </div>
 
         {/* Payment Status Card */}
-        <div className="bg-[#123618] border border-primary/20 rounded-lg p-8 flex flex-col justify-between relative overflow-hidden">
-          {/* Decor */}
-          <div className="absolute top-0 right-0 p-4 opacity-20">
-            <BsWallet2 size={64} className="text-primary" />
-          </div>
-
-          <div>
-            <span className="text-[#6abd68] font-bold text-xs tracking-widest uppercase mb-1 block">
+        <div className="bg-background-card-color border border-border-color rounded-lg p-6 flex items-center justify-between relative overflow-hidden">
+          <div className="flex flex-col gap-1">
+            <span className="text-yellow-500 font-bold text-xs tracking-widest uppercase mb-1 block">
               Saldo Pendiente
             </span>
-            <span className="text-5xl font-black text-white font-display tracking-tighter">
-              ${pendingDebt.toFixed(2)}
-            </span>
-            <span className="text-white/40 text-sm mt-2 block italic text-xs">
-              Vence pronto
+            <span className="text-4xl font-black text-white font-display tracking-tighter">
+              ${pendingDebt.toLocaleString()}
             </span>
           </div>
 
-          <button className="w-full py-4 bg-primary text-black font-bold rounded-lg hover:bg-[#4ab849] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 mt-8">
-            <BsWallet2 size={18} />
-            <span>Registrar Pago</span>
-          </button>
+          <div className="h-12 w-px bg-white/10 mx-6"></div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-green-500 font-bold text-xs tracking-widest uppercase mb-1 block">
+              Valor Aportado
+            </span>
+            <span className="text-4xl font-black text-white font-display tracking-tighter">
+              ${totalContributed.toLocaleString()}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -217,10 +227,9 @@ export default function PlayerDetails() {
       {/* Content Area - Table */}
       <div className="bg-background-card-color border border-border-color rounded-lg overflow-hidden mt-2">
         {/* Table Header */}
-        <div className="grid grid-cols-6 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
+        <div className="hidden md:grid md:grid-cols-6 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
           <div>Fecha</div>
-          <div className="col-span-2">Detalle de Cancha</div>
-          <div>Duración</div>
+          <div className="col-span-2">Cancha</div>
           <div>Importe</div>
           <div>Estado</div>
         </div>
@@ -231,23 +240,22 @@ export default function PlayerDetails() {
             bookings.map((booking) => (
               <div
                 key={booking.id}
-                className="grid grid-cols-6 gap-4 p-5 border-b border-white/5 items-center hover:bg-white/5 transition-colors group"
+                className="grid grid-cols-2 md:grid-cols-6 gap-x-4 gap-y-2 p-4 md:p-5 border-b border-white/5 items-center hover:bg-white/5 transition-colors group"
               >
-                <div className="text-white font-medium text-sm">
-                  {booking.date}
+                <div className="flex flex-col col-span-1 md:col-span-1">
+                  <span className="text-white font-medium text-sm">
+                    {booking.date}
+                  </span>
+                  <span className="text-xs text-text-color/50">
+                    {booking.time}
+                  </span>
                 </div>
-                <div className="col-span-2 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                    <BsClockHistory size={14} />
-                  </div>
+                <div className="col-span-2 md:col-span-2 flex items-center gap-2">
                   <span className="text-text-color font-medium text-sm">
                     {booking.courtDetail}
                   </span>
                 </div>
-                <div className="text-text-color/60 text-sm">
-                  {booking.duration}
-                </div>
-                <div className="text-white font-bold text-sm">
+                <div className="text-white font-bold text-sm col-span-1 md:col-span-1">
                   {booking.amount}
                 </div>
                 <div>
@@ -260,9 +268,6 @@ export default function PlayerDetails() {
                   >
                     {booking.status}
                   </span>
-                </div>
-                <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-text-color hover:text-white">
-                  <BsThreeDotsVertical />
                 </div>
               </div>
             ))

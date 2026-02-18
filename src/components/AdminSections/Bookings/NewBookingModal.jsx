@@ -16,6 +16,7 @@ import {
   deleteBooking,
 } from "../../../services/bookingService";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 // Generate 30 min slots for the dropdown
 const GENERATE_TIME_OPTIONS = () => {
@@ -292,7 +293,7 @@ export default function NewBookingModal({
       }
 
       onBookingAdded();
-      onClose();
+      // onClose();
     } catch (err) {
       console.error(err);
       toast.error(err.message || "Error al guardar la reserva");
@@ -546,9 +547,12 @@ export default function NewBookingModal({
                   >
                     <div className="flex items-center gap-3">
                       <div>
-                        <p className="text-sm font-bold text-text-color">
+                        <Link
+                          to={`/admin-panel/players/${player.id}`}
+                          className="text-sm font-bold text-text-color hover:text-primary hover:underline transition-colors"
+                        >
                           {player.full_name}
-                        </p>
+                        </Link>
                         <p className="text-xs text-text-color/50">
                           {player.is_student ? "Alumno" : "Visitante"}
                         </p>
