@@ -685,7 +685,7 @@ export default function NewBookingModal({
                           onClick={() => handleTogglePaid(player)}
                           className={`text-[10px] md:text-md font-bold px-2 py-1 rounded-lg border transition-colors cursor-pointer ${
                             player.is_paid
-                              ? "bg-primary/10 text-primary hover:bg-primary/15 border-primary/20"
+                              ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 hover:border-green-500/30 font-semibold"
                               : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
                           }`}
                         >
@@ -757,7 +757,7 @@ export default function NewBookingModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="gap-3 py-2 md:py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm  text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
               >
                 Cancelar
               </button>
@@ -765,10 +765,10 @@ export default function NewBookingModal({
               <button
                 type="submit"
                 disabled={loading || selectedPlayers.length === 0}
-                className={`gap-3 py-2 md:py-3 rounded-lg border transition-all duration-300 w-full font-bold flex items-center justify-center
+                className={`md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm 
                   ${
                     !loading && selectedPlayers.length > 0
-                      ? "bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
+                      ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
                       : "bg-text-color/10 text-text-color/50 border-text-color/10 cursor-not-allowed opacity-50"
                   }`}
               >
@@ -811,14 +811,14 @@ export default function NewBookingModal({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-2 md:py-3 rounded-lg border transition-colors font-medium text-sm bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="cursor-pointer flex-1 py-2 md:py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors font-bold text-sm"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
               >
                 {loading ? "Eliminando..." : "Eliminar"}
               </button>
@@ -845,14 +845,14 @@ export default function NewBookingModal({
               <button
                 type="button"
                 onClick={() => confirmPayment("Efectivo")}
-                className="flex-1 py-2 md:py-3 rounded-lg border transition-colors font-medium text-sm bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
               >
                 Efectivo
               </button>
               <button
                 type="button"
                 onClick={() => confirmPayment("Transferencia")}
-                className="flex-1 py-2 md:py-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500/20 transition-colors font-medium text-sm cursor-pointer"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 cursor-pointer"
               >
                 Transferencia
               </button>
@@ -860,7 +860,7 @@ export default function NewBookingModal({
             <button
               type="button"
               onClick={() => setShowPaymentModal(false)}
-              className="cursor-pointer flex-1 md:py-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors font-bold text-sm"
+              className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
             >
               Cancelar
             </button>

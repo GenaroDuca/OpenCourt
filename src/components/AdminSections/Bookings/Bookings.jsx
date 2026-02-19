@@ -208,7 +208,7 @@ export default function Bookings() {
               setEditingBooking(null);
               setIsModalOpen(true);
             }}
-            className="flex md:hidden items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
+            className="flex md:hidden items-center p-2 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
           >
             <BsPlus size={20} />
           </button>
@@ -224,7 +224,7 @@ export default function Bookings() {
             setEditingBooking(null);
             setIsModalOpen(true);
           }}
-          className="hidden md:flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
+          className="md:h-[50px] hidden md:flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
         >
           <BsPlus size={20} />
           <span className="hidden md:block">Nueva Reserva</span>
