@@ -105,6 +105,12 @@ export default function NewBookingModal({
   // Manual Price Mode State
   const [manualPriceMode, setManualPriceMode] = useState(false);
 
+  // Fixed Booking State
+  const [isFixed, setIsFixed] = useState(false);
+
+  // Details State
+  const [details, setDetails] = useState("");
+
   const timeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
 
@@ -133,6 +139,12 @@ export default function NewBookingModal({
 
         // Court
         setCourtId(bookingToEdit.court_id);
+
+        // Fixed
+        setIsFixed(bookingToEdit.is_fixed || false);
+
+        // Details
+        setDetails(bookingToEdit.details || "");
 
         // Players
         const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
@@ -183,6 +195,9 @@ export default function NewBookingModal({
         }
 
         setSelectedPlayers([]);
+        setSelectedPlayers([]);
+        setIsFixed(false);
+        setDetails("");
       }
 
       setPlayerSearch("");
@@ -361,6 +376,8 @@ export default function NewBookingModal({
           is_paid: p.is_paid,
           payment_method: p.payment_method,
         })),
+        is_fixed: isFixed,
+        details: details,
       };
 
       if (bookingToEdit) {
@@ -633,24 +650,44 @@ export default function NewBookingModal({
               </div>
 
               {/* Manual Price Toggle */}
-              <div
-                className="flex items-center gap-2 cursor-pointer group justify-center"
-                onClick={() => setManualPriceMode(!manualPriceMode)}
-              >
+              <div className="flex justify-between">
                 <div
-                  className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                    manualPriceMode
-                      ? "bg-primary border-primary text-black"
-                      : "border-text-color/30 group-hover:border-primary/50"
-                  }`}
+                  className="flex items-center gap-2 cursor-pointer group justify-center"
+                  onClick={() => setManualPriceMode(!manualPriceMode)}
                 >
-                  {manualPriceMode && <BsCheckLg size={12} />}
+                  <div
+                    className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                      manualPriceMode
+                        ? "bg-primary border-primary text-black"
+                        : "border-text-color/30 group-hover:border-primary/50"
+                    }`}
+                  >
+                    {manualPriceMode && <BsCheckLg size={12} />}
+                  </div>
+                  <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                    Habilitar precio manual
+                  </span>
                 </div>
-                <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
-                  Habilitar precio manual
-                </span>
-              </div>
 
+                {/* Fixed Booking Toggle */}
+                <div
+                  className="flex items-center gap-2 cursor-pointer group justify-center"
+                  onClick={() => setIsFixed(!isFixed)}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                      isFixed
+                        ? "bg-primary border-primary text-black"
+                        : "border-text-color/30 group-hover:border-primary/50"
+                    }`}
+                  >
+                    {isFixed && <BsCheckLg size={12} />}
+                  </div>
+                  <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                    Turno Fijo
+                  </span>
+                </div>
+              </div>
               {/* Selected Players List */}
               <div className="grid grid-cols-1 gap-2">
                 {selectedPlayers.map((player) => (
@@ -730,6 +767,19 @@ export default function NewBookingModal({
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Details Textarea */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-text-color">
+                  Detalles / Notas
+                </label>
+                <textarea
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  placeholder="Agregar notas sobre la reserva..."
+                  className="w-full bg-background-color border border-border-color rounded-lg p-3 text-sm text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none h-24"
+                />
               </div>
             </div>
           </div>

@@ -125,6 +125,8 @@ export default function BookingCalendar({
 
                   const showPendingWarning = !isPaid && !isFutureDay;
 
+                  const isFixed = booking.is_fixed;
+
                   return (
                     <div
                       key={slot}
@@ -133,24 +135,45 @@ export default function BookingCalendar({
                         onBookingClick(booking);
                       }}
                       style={{ height: `${height}px` }}
-                      className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl md:rounded-lg p-2 md:p-5 flex flex-col gap-1 md:gap-2 relative group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:border-primary/40 cursor-pointer"
+                      className={`bg-linear-to-br ${
+                        isFixed
+                          ? "from-blue-500/20 to-blue-500/5 border-blue-500/20 hover:shadow-blue-500/10 hover:border-blue-500/40"
+                          : "from-primary/20 to-primary/5 border-primary/20 hover:shadow-primary/10 hover:border-primary/40"
+                      } border rounded-2xl md:rounded-lg p-2 md:p-5 flex flex-col gap-1 md:gap-2 relative group overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer`}
                     >
                       {/* Hover Glow Effect */}
-                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div
+                        className={`absolute inset-0 ${
+                          isFixed ? "bg-blue-500/5" : "bg-primary/5"
+                        } opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                      />
 
                       {/* Top Row: Time */}
                       <div className="flex justify-between items-start relative z-10 gap-1">
-                        <span className="w-full text-center md:w-auto bg-primary/20 border border-primary/20 px-1 py-0.5 md:px-3 md:py-1 rounded-lg text-[8px] md:text-xs font-bold text-primary backdrop-blur-sm shadow-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                          {start.toLocaleTimeString(["es-ES"], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                          -
-                          {end.toLocaleTimeString(["es-ES"], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          <span
+                            className={`w-full text-center md:w-auto ${
+                              isFixed
+                                ? "bg-blue-500/20 border-blue-500/20 text-blue-500"
+                                : "bg-primary/20 border-primary/20 text-primary"
+                            } border px-1 py-0.5 md:px-3 md:py-1 rounded-lg text-[8px] md:text-xs font-bold backdrop-blur-sm shadow-sm whitespace-nowrap overflow-hidden text-ellipsis`}
+                          >
+                            {start.toLocaleTimeString(["es-ES"], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                            -
+                            {end.toLocaleTimeString(["es-ES"], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {isFixed && (
+                            <span className="text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm bg-blue-500/10 border-blue-500/30 text-blue-500">
+                              Fijo
+                            </span>
+                          )}
+                        </div>
 
                         {/* Paid Icon - Visible on all screens for quick status */}
                         {isPaid ? (
@@ -198,7 +221,11 @@ export default function BookingCalendar({
 
                       {/* Bottom Layout: Status */}
                       <div className="flex items-end justify-center md:justify-between gap-1 relative z-10">
-                        <div className="hidden md:flex items-center gap-1 md:gap-2 text-primary/80 text-[8px] md:text-sm font-medium ">
+                        <div
+                          className={`hidden md:flex items-center gap-1 md:gap-2 ${
+                            isFixed ? "text-blue-500/80" : "text-primary/80"
+                          } text-[8px] md:text-sm font-medium `}
+                        >
                           <BsPerson
                             size={14}
                             className="md:w-[20px] md:h-[20px]"
@@ -232,7 +259,15 @@ export default function BookingCalendar({
                       </div>
 
                       {/* Decorative background element - hidden on mobile to screen clutter */}
-                      <div className="hidden md:block absolute -bottom-4 -right-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500" />
+                      <div
+                        className={`hidden md:block absolute -bottom-4 -right-4 w-24 h-24 ${
+                          isFixed ? "bg-blue-500/10" : "bg-primary/10"
+                        } rounded-full blur-2xl ${
+                          isFixed
+                            ? "group-hover:bg-blue-500/20"
+                            : "group-hover:bg-primary/20"
+                        } transition-all duration-500`}
+                      />
                     </div>
                   );
                 }

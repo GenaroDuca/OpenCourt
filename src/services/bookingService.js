@@ -38,81 +38,165 @@ export const getBookingsByDate = async (date) => {
 };
 
 export const createBooking = async (bookingData) => {
-  const { court_id, start_time, end_time, players } = bookingData;
+  const { court_id, start_time, end_time, players, is_fixed, details } =
+    bookingData;
 
-  // 0. Check for conflicts
-  const { data: conflicts, error: conflictError } = await supabase
-    .from("bookings")
-    .select("id")
-    .eq("court_id", court_id)
-    .lt("start_time", end_time)
-    .gt("end_time", start_time);
+  // Helper function to create a single booking
+  const createSingleBooking = async (
+    cId,
+    sTime,
+    eTime,
+    bookingPlayers,
+    fixed,
+    notes,
+  ) => {
+    // 0. Check for conflicts
+    const { data: conflicts, error: conflictError } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("court_id", cId)
+      .lt("start_time", eTime)
+      .gt("end_time", sTime);
 
-  if (conflictError) throw conflictError;
+    if (conflictError) throw conflictError;
 
-  if (conflicts && conflicts.length > 0) {
-    throw new Error("La cancha ya está reservada en este horario");
-  }
-
-  // 1. Create booking
-  const { data: booking, error: bookingError } = await supabase
-    .from("bookings")
-    .insert([{ court_id, start_time, end_time }])
-    .select()
-    .single();
-
-  if (bookingError) throw bookingError;
-
-  // 2. Add players to booking
-  const bookingPlayersData = players.map((p) => ({
-    booking_id: booking.id,
-    player_id: p.id,
-    individual_price: p.price,
-    is_paid: p.is_paid || false,
-  }));
-
-  const { data: insertedPlayers, error: playerError } = await supabase
-    .from("booking_players")
-    .insert(bookingPlayersData)
-    .select();
-
-  if (playerError) {
-    await supabase.from("bookings").delete().eq("id", booking.id);
-    throw playerError;
-  }
-
-  // 3. Register Payments
-  const paymentsToInsert = [];
-  insertedPlayers.forEach((bp) => {
-    const originalPlayer = players.find((p) => p.id === bp.player_id);
-    if (
-      originalPlayer &&
-      originalPlayer.is_paid &&
-      originalPlayer.payment_method
-    ) {
-      paymentsToInsert.push({
-        booking_player_id: bp.id,
-        amount: bp.individual_price,
-        payment_method: originalPlayer.payment_method,
-      });
+    if (conflicts && conflicts.length > 0) {
+      throw new Error(
+        `La cancha ya está reservada en el horario: ${new Date(sTime).toLocaleString()}`,
+      );
     }
-  });
 
-  if (paymentsToInsert.length > 0) {
-    const { error: paymentError } = await supabase
-      .from("payments")
-      .insert(paymentsToInsert);
+    // 1. Create booking
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .insert([
+        {
+          court_id: cId,
+          start_time: sTime,
+          end_time: eTime,
+          is_fixed: fixed,
+          details: notes,
+        },
+      ])
+      .select()
+      .single();
 
-    // Log error but don't fail the whole booking creation?
-    // Ideally we should fail, but for now let's just log it or throw to be safe
-    if (paymentError) console.error("Error creating payments:", paymentError);
+    if (bookingError) throw bookingError;
+
+    // 2. Add players to booking
+    const bookingPlayersData = bookingPlayers.map((p) => ({
+      booking_id: booking.id,
+      player_id: p.id,
+      individual_price: p.price,
+      is_paid: p.is_paid || false,
+    }));
+
+    const { data: insertedPlayers, error: playerError } = await supabase
+      .from("booking_players")
+      .insert(bookingPlayersData)
+      .select();
+
+    if (playerError) {
+      await supabase.from("bookings").delete().eq("id", booking.id);
+      throw playerError;
+    }
+
+    // 3. Register Payments
+    const paymentsToInsert = [];
+    insertedPlayers.forEach((bp) => {
+      const originalPlayer = bookingPlayers.find((p) => p.id === bp.player_id);
+      if (
+        originalPlayer &&
+        originalPlayer.is_paid &&
+        originalPlayer.payment_method
+      ) {
+        paymentsToInsert.push({
+          booking_player_id: bp.id,
+          amount: bp.individual_price,
+          payment_method: originalPlayer.payment_method,
+        });
+      }
+    });
+
+    if (paymentsToInsert.length > 0) {
+      const { error: paymentError } = await supabase
+        .from("payments")
+        .insert(paymentsToInsert);
+
+      if (paymentError) console.error("Error creating payments:", paymentError);
+    }
+
+    return booking;
+  };
+
+  if (is_fixed) {
+    const WEEKS_AHEAD = 12;
+    const bookings = [];
+    const errors = [];
+
+    for (let i = 0; i <= WEEKS_AHEAD; i++) {
+      const currentStart = new Date(start_time);
+      currentStart.setDate(currentStart.getDate() + i * 7);
+
+      const currentEnd = new Date(end_time);
+      currentEnd.setDate(currentEnd.getDate() + i * 7);
+
+      try {
+        // Only mark payment for the first one if it's paid?
+        // Or all of them? Logic: usually recurring bookings are paid per session.
+        // If the user marks as "Paid" in the modal, they likely mean the FIRST one.
+        // But for simplicity, let's keep the payment status for all for now,
+        // or clear it for subsequent weeks?
+        // Let's clear payment for subsequent weeks to be creating unpaid reservations.
+        const weekPlayers =
+          i === 0
+            ? players
+            : players.map((p) => ({
+                ...p,
+                is_paid: false,
+                payment_method: null,
+              }));
+
+        const booking = await createSingleBooking(
+          court_id,
+          currentStart.toISOString(),
+          currentEnd.toISOString(),
+          weekPlayers,
+          true,
+          details,
+        );
+        bookings.push(booking);
+      } catch (err) {
+        console.error(`Error replicating booking for week ${i}:`, err);
+        errors.push(err.message);
+        // Continue loop? Or stop?
+        // Usually better to stop if we want atomic-like behavior, but here we can't easily rollback via REST.
+        // We will continue and report errors.
+      }
+    }
+
+    if (errors.length > 0 && bookings.length === 0) {
+      throw new Error(`Fallaron todas las reservas: ${errors.join(", ")}`);
+    }
+
+    // Return the first one as representative
+    return bookings[0];
+  } else {
+    // Normal single booking
+    return createSingleBooking(
+      court_id,
+      start_time,
+      end_time,
+      players,
+      false,
+      details,
+    );
   }
-
-  return booking;
 };
 
 export const updateBooking = async (id, bookingData) => {
-  const { court_id, start_time, end_time, players } = bookingData;
+  const { court_id, start_time, end_time, players, is_fixed, details } =
+    bookingData;
 
   // 0. Check for conflicts (excluding current booking)
   const { data: conflicts, error: conflictError } = await supabase
@@ -132,7 +216,7 @@ export const updateBooking = async (id, bookingData) => {
   // 1. Update booking details
   const { error: updateError } = await supabase
     .from("bookings")
-    .update({ court_id, start_time, end_time })
+    .update({ court_id, start_time, end_time, is_fixed, details })
     .eq("id", id);
 
   if (updateError) throw updateError;
