@@ -105,6 +105,9 @@ export default function NewBookingModal({
   // Manual Price Mode State
   const [manualPriceMode, setManualPriceMode] = useState(false);
 
+  // Fixed Booking State
+  const [isFixed, setIsFixed] = useState(false);
+
   const timeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
 
@@ -133,6 +136,9 @@ export default function NewBookingModal({
 
         // Court
         setCourtId(bookingToEdit.court_id);
+
+        // Fixed
+        setIsFixed(bookingToEdit.is_fixed || false);
 
         // Players
         const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
@@ -183,6 +189,7 @@ export default function NewBookingModal({
         }
 
         setSelectedPlayers([]);
+        setIsFixed(false);
       }
 
       setPlayerSearch("");
@@ -361,6 +368,7 @@ export default function NewBookingModal({
           is_paid: p.is_paid,
           payment_method: p.payment_method,
         })),
+        is_fixed: isFixed,
       };
 
       if (bookingToEdit) {
@@ -633,24 +641,44 @@ export default function NewBookingModal({
               </div>
 
               {/* Manual Price Toggle */}
-              <div
-                className="flex items-center gap-2 cursor-pointer group justify-center"
-                onClick={() => setManualPriceMode(!manualPriceMode)}
-              >
+              <div className="flex justify-between">
                 <div
-                  className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                    manualPriceMode
-                      ? "bg-primary border-primary text-black"
-                      : "border-text-color/30 group-hover:border-primary/50"
-                  }`}
+                  className="flex items-center gap-2 cursor-pointer group justify-center"
+                  onClick={() => setManualPriceMode(!manualPriceMode)}
                 >
-                  {manualPriceMode && <BsCheckLg size={12} />}
+                  <div
+                    className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                      manualPriceMode
+                        ? "bg-primary border-primary text-black"
+                        : "border-text-color/30 group-hover:border-primary/50"
+                    }`}
+                  >
+                    {manualPriceMode && <BsCheckLg size={12} />}
+                  </div>
+                  <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                    Habilitar precio manual
+                  </span>
                 </div>
-                <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
-                  Habilitar precio manual
-                </span>
-              </div>
 
+                {/* Fixed Booking Toggle */}
+                <div
+                  className="flex items-center gap-2 cursor-pointer group justify-center"
+                  onClick={() => setIsFixed(!isFixed)}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                      isFixed
+                        ? "bg-primary border-primary text-black"
+                        : "border-text-color/30 group-hover:border-primary/50"
+                    }`}
+                  >
+                    {isFixed && <BsCheckLg size={12} />}
+                  </div>
+                  <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                    Turno Fijo
+                  </span>
+                </div>
+              </div>
               {/* Selected Players List */}
               <div className="grid grid-cols-1 gap-2">
                 {selectedPlayers.map((player) => (
