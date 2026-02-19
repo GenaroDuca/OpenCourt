@@ -18,6 +18,7 @@ export default function App() {
             padding: "12px 16px",
             borderRadius: "var(--radius-lg)",
           },
+          className: "text-sm md:text-base",
         }}
       />
       <Routes>

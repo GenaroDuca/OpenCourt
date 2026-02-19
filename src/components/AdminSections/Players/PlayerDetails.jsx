@@ -173,16 +173,21 @@ export default function PlayerDetails() {
               minute: "2-digit",
             })
           : "-",
-        rawDate: booking.start_time, // For navigation
-        bookingId: booking.id, // Booking ID (not booking_player id)
+        rawDate: booking.start_time,
+        bookingId: booking.id,
       };
     }) || [];
 
   const handleBookingClick = (booking) => {
-    navigate("/admin-panel/bookings", {
+    const dateObj = new Date(booking.rawDate);
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
+
+    navigate(`/admin-panel/bookings?date=${dateStr}`, {
       state: {
         bookingId: booking.bookingId,
-        date: booking.rawDate,
       },
     });
   };

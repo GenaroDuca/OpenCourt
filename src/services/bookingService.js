@@ -197,17 +197,33 @@ export const updateBooking = async (id, bookingData) => {
     }
 
     // Handle Payment Transaction
-    // Only insert payment if we have a payment_method explicitly passed (meaning a new payment action)
-    if (player.is_paid && player.payment_method && finalBookingPlayerId) {
-      const { error: paymentError } = await supabase.from("payments").insert([
-        {
-          booking_player_id: finalBookingPlayerId,
-          amount: player.price,
-          payment_method: player.payment_method,
-        },
-      ]);
+    if (finalBookingPlayerId) {
+      // 1. Always remove ALL existing payments for this player/booking to prevent duplicates/stale data
+      const { error: deleteError } = await supabase
+        .from("payments")
+        .delete()
+        .eq("booking_player_id", finalBookingPlayerId);
 
-      if (paymentError) console.error("Error creating payment:", paymentError);
+      if (deleteError) {
+        console.error("Error clearing existing payments:", deleteError);
+        throw deleteError;
+      }
+
+      // 2. If the player is marked as PAID, insert the new payment record
+      if (player.is_paid && player.payment_method) {
+        const { error: paymentError } = await supabase.from("payments").insert([
+          {
+            booking_player_id: finalBookingPlayerId,
+            amount: player.price,
+            payment_method: player.payment_method,
+          },
+        ]);
+
+        if (paymentError) {
+          console.error("Error creating payment:", paymentError);
+          throw paymentError;
+        }
+      }
     }
   }
 

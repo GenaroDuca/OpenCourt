@@ -266,16 +266,16 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-border-color bg-white/5 flex gap-4">
+          <div className="p-2 md:p-4 border-t border-border-color bg-white/5 flex gap-2 md:gap-4 ">
             <button
               onClick={onClose}
-              className="gap-3 px-4 py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
+              className="gap-3 px-4 py-2 md:py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
             >
               Cancelar
             </button>
             <button
               disabled={!isFormValid || loading}
-              className={`gap-3 px-4 py-3 rounded-lg border transition-all duration-300 w-full font-bold flex items-center justify-center
+              className={`gap-3 px-4 py-2 md:py-3 rounded-lg border transition-all duration-300 w-full font-bold flex items-center justify-center
                 ${
                   isFormValid && !loading
                     ? "bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
