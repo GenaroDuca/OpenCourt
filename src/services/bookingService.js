@@ -38,7 +38,8 @@ export const getBookingsByDate = async (date) => {
 };
 
 export const createBooking = async (bookingData) => {
-  const { court_id, start_time, end_time, players, is_fixed } = bookingData;
+  const { court_id, start_time, end_time, players, is_fixed, details } =
+    bookingData;
 
   // Helper function to create a single booking
   const createSingleBooking = async (
@@ -47,6 +48,7 @@ export const createBooking = async (bookingData) => {
     eTime,
     bookingPlayers,
     fixed,
+    notes,
   ) => {
     // 0. Check for conflicts
     const { data: conflicts, error: conflictError } = await supabase
@@ -68,7 +70,13 @@ export const createBooking = async (bookingData) => {
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .insert([
-        { court_id: cId, start_time: sTime, end_time: eTime, is_fixed: fixed },
+        {
+          court_id: cId,
+          start_time: sTime,
+          end_time: eTime,
+          is_fixed: fixed,
+          details: notes,
+        },
       ])
       .select()
       .single();
@@ -155,6 +163,7 @@ export const createBooking = async (bookingData) => {
           currentEnd.toISOString(),
           weekPlayers,
           true,
+          details,
         );
         bookings.push(booking);
       } catch (err) {
@@ -174,12 +183,20 @@ export const createBooking = async (bookingData) => {
     return bookings[0];
   } else {
     // Normal single booking
-    return createSingleBooking(court_id, start_time, end_time, players, false);
+    return createSingleBooking(
+      court_id,
+      start_time,
+      end_time,
+      players,
+      false,
+      details,
+    );
   }
 };
 
 export const updateBooking = async (id, bookingData) => {
-  const { court_id, start_time, end_time, players, is_fixed } = bookingData;
+  const { court_id, start_time, end_time, players, is_fixed, details } =
+    bookingData;
 
   // 0. Check for conflicts (excluding current booking)
   const { data: conflicts, error: conflictError } = await supabase
@@ -199,7 +216,7 @@ export const updateBooking = async (id, bookingData) => {
   // 1. Update booking details
   const { error: updateError } = await supabase
     .from("bookings")
-    .update({ court_id, start_time, end_time, is_fixed })
+    .update({ court_id, start_time, end_time, is_fixed, details })
     .eq("id", id);
 
   if (updateError) throw updateError;

@@ -78,7 +78,6 @@ export default function PlayerDetails() {
           }));
         }
 
-        console.log("DEBUG PLAYER RAW:", data);
 
         setPlayer(data);
       } catch (error) {

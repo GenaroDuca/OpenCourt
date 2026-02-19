@@ -135,7 +135,7 @@ export default function BookingCalendar({
                         onBookingClick(booking);
                       }}
                       style={{ height: `${height}px` }}
-                      className={`bg-gradient-to-br ${
+                      className={`bg-linear-to-br ${
                         isFixed
                           ? "from-blue-500/20 to-blue-500/5 border-blue-500/20 hover:shadow-blue-500/10 hover:border-blue-500/40"
                           : "from-primary/20 to-primary/5 border-primary/20 hover:shadow-primary/10 hover:border-primary/40"

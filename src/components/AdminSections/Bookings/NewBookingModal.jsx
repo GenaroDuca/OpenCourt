@@ -108,6 +108,9 @@ export default function NewBookingModal({
   // Fixed Booking State
   const [isFixed, setIsFixed] = useState(false);
 
+  // Details State
+  const [details, setDetails] = useState("");
+
   const timeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
 
@@ -139,6 +142,9 @@ export default function NewBookingModal({
 
         // Fixed
         setIsFixed(bookingToEdit.is_fixed || false);
+
+        // Details
+        setDetails(bookingToEdit.details || "");
 
         // Players
         const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
@@ -189,7 +195,9 @@ export default function NewBookingModal({
         }
 
         setSelectedPlayers([]);
+        setSelectedPlayers([]);
         setIsFixed(false);
+        setDetails("");
       }
 
       setPlayerSearch("");
@@ -369,6 +377,7 @@ export default function NewBookingModal({
           payment_method: p.payment_method,
         })),
         is_fixed: isFixed,
+        details: details,
       };
 
       if (bookingToEdit) {
@@ -758,6 +767,19 @@ export default function NewBookingModal({
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Details Textarea */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-text-color">
+                  Detalles / Notas
+                </label>
+                <textarea
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  placeholder="Agregar notas sobre la reserva..."
+                  className="w-full bg-background-color border border-border-color rounded-lg p-3 text-sm text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none h-24"
+                />
               </div>
             </div>
           </div>
