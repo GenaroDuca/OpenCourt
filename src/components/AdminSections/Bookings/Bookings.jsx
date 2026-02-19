@@ -34,7 +34,6 @@ export default function Bookings() {
   const [loading, setLoading] = useState(true);
 
   const location = useLocation();
-  const [pendingBookingId, setPendingBookingId] = useState(null);
 
   // Sync URL with selected date
   useEffect(() => {
@@ -76,28 +75,20 @@ export default function Bookings() {
     }
   }, [searchParams]);
 
-  // Handle navigation from other pages (e.g. PlayerDetails)
+  // Sync modal with URL bookingId
   useEffect(() => {
-    if (location.state?.bookingId && location.state?.date) {
-      const targetDate = new Date(location.state.date);
-      setPendingBookingId(location.state.bookingId);
-      setSelectedDate(targetDate);
-    }
-  }, [location]);
-
-  // Open pending booking once loaded
-  useEffect(() => {
-    if (pendingBookingId && bookings.length > 0) {
-      const booking = bookings.find((b) => b.id === pendingBookingId);
+    const bookingId = searchParams.get("bookingId");
+    if (bookingId && bookings.length > 0) {
+      const booking = bookings.find((b) => b.id === bookingId);
       if (booking) {
         setEditingBooking(booking);
         setIsModalOpen(true);
-        setPendingBookingId(null);
-        // Clear state to prevent reopening
-        window.history.replaceState({}, document.title);
       }
+    } else if (!bookingId) {
+      // If URL param removed, ensuring modal closes is optional but might be good
+      // But usually we close modal -> remove param.
     }
-  }, [bookings, pendingBookingId]);
+  }, [searchParams, bookings]);
 
   const loadData = async () => {
     setLoading(true);
@@ -161,8 +152,14 @@ export default function Bookings() {
   };
 
   const handleBookingClick = (booking) => {
-    setEditingBooking(booking);
-    setIsModalOpen(true);
+    setSearchParams(
+      (prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set("bookingId", booking.id);
+        return newParams;
+      },
+      { replace: false },
+    );
   };
 
   const handleCloseModal = () => {
@@ -170,6 +167,14 @@ export default function Bookings() {
     setInitialCourtId(""); // Reset
     setInitialTime("");
     setEditingBooking(null);
+    setSearchParams(
+      (prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete("bookingId");
+        return newParams;
+      },
+      { replace: false },
+    );
   };
 
   return (
@@ -227,7 +232,7 @@ export default function Bookings() {
           className="md:h-[50px] hidden md:flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
         >
           <BsPlus size={20} />
-          <span className="hidden md:block">Nueva Reserva</span>
+          <span className="hidden md:block text-sm">Nueva Reserva</span>
         </button>
       </div>
 
@@ -244,6 +249,7 @@ export default function Bookings() {
             selectedDate={selectedDate}
             onSlotClick={handleSlotClick}
             onBookingClick={handleBookingClick}
+            highlightedBookingId={searchParams.get("bookingId")}
           />
         )}
       </div>

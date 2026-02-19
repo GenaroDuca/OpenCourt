@@ -122,24 +122,38 @@ export default function Players() {
           value={totalStudents}
           icon={<FaGraduationCap size={24} />}
           color="green"
+          isActive={filterType === "student"}
+          onClick={() =>
+            setFilterType(filterType === "student" ? "all" : "student")
+          }
         />
         <StatsCard
           title="Total de No Alumnos"
           value={totalNonStudents}
           icon={<BsPerson size={24} />}
           color="blue"
+          isActive={filterType === "non_student"}
+          onClick={() =>
+            setFilterType(filterType === "non_student" ? "all" : "non_student")
+          }
         />
         <StatsCard
           title="Total de Jugadores"
           value={totalPlayers}
           icon={<MdGroups2 size={24} />}
           color="purple"
+          isActive={filterType === "all"}
+          onClick={() => setFilterType("all")}
         />
         <StatsCard
           title="Alumnos que deben"
           value={studentsWithDebt}
           icon={<TiWarning size={24} />}
           color="yellow"
+          isActive={filterType === "pending"}
+          onClick={() =>
+            setFilterType(filterType === "pending" ? "all" : "pending")
+          }
         />
       </div>
       <PlayersFilter

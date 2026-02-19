@@ -15,6 +15,7 @@ import {
   updateBooking,
   deleteBooking,
 } from "../../../services/bookingService";
+import { createPlayer } from "../../../services/playerService";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -93,6 +94,7 @@ export default function NewBookingModal({
 
   // Multiple players state
   const [selectedPlayers, setSelectedPlayers] = useState([]);
+  const [isQuickAddStudent, setIsQuickAddStudent] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -238,6 +240,26 @@ export default function NewBookingModal({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleQuickAddPlayer = async () => {
+    try {
+      setLoading(true);
+      const newPlayer = await createPlayer({
+        full_name: playerSearch,
+        is_student: isQuickAddStudent,
+        phone: null,
+      });
+      toast.success("Jugador creado y agregado");
+      handleAddPlayer(newPlayer); // Adds to selectedPlayers
+      setPlayerSearch("");
+      setIsQuickAddStudent(false); // Reset
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al crear jugador");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddPlayer = (player) => {
     if (selectedPlayers.find((p) => p.id === player.id)) {
@@ -641,8 +663,43 @@ export default function NewBookingModal({
                         );
                       })
                     ) : (
-                      <div className="p-4 text-center text-text-color/50 text-sm">
-                        No se encontraron jugadores
+                      <div className="p-3 flex flex-col gap-2">
+                        <div className="text-center text-text-color/50 text-sm mb-1">
+                          No se encontraron jugadores
+                        </div>
+                        {playerSearch.trim() !== "" && (
+                          <div className="flex flex-col gap-2 bg-white/5 p-2 rounded-lg border border-primary/20">
+                            <div
+                              className="flex items-center justify-center gap-2 px-1 cursor-pointer group"
+                              onClick={() =>
+                                setIsQuickAddStudent(!isQuickAddStudent)
+                              }
+                            >
+                              <div
+                                className={`w-5 h-5 border flex items-center justify-center transition-all duration-300 rounded-full ${
+                                  isQuickAddStudent
+                                    ? "bg-primary border-primary"
+                                    : "border-text-color/50 group-hover:border-primary"
+                                }`}
+                              >
+                                {isQuickAddStudent && (
+                                  <BsCheckLg size={14} className="text-white" />
+                                )}
+                              </div>
+                              <label className="text-sm text-text-color cursor-pointer select-none group-hover:text-primary transition-colors">
+                                ¿Es Alumno?
+                              </label>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleQuickAddPlayer}
+                              className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg py-2 text-sm font-bold transition-all text-center flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                            >
+                              <BsPlus size={18} />
+                              Agregar "{playerSearch}"
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

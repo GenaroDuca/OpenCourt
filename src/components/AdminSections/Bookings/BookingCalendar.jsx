@@ -15,8 +15,58 @@ export default function BookingCalendar({
   selectedDate,
   onSlotClick,
   onBookingClick,
+  highlightedBookingId,
 }) {
   const [isMobile, setIsMobile] = React.useState(false);
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+  const scrollRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const timeIndicatorPosition = React.useMemo(() => {
+    const sDate = new Date(selectedDate);
+    const now = currentTime;
+
+    if (
+      sDate.getDate() !== now.getDate() ||
+      sDate.getMonth() !== now.getMonth() ||
+      sDate.getFullYear() !== now.getFullYear()
+    ) {
+      return null;
+    }
+
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    // Start 9:00
+    const startMinutes = 9 * 60;
+    const nowMinutes = currentHour * 60 + currentMinute;
+
+    const diff = nowMinutes - startMinutes;
+    if (diff < 0 || diff > 15 * 60) return null;
+
+    const slotHeight = isMobile ? 40 : 80;
+    const gap = 8;
+
+    const slots = Math.floor(diff / 30);
+    const minutesInSlot = diff % 30;
+
+    return slots * (slotHeight + gap) + (minutesInSlot / 30) * slotHeight;
+  }, [currentTime, selectedDate, isMobile]);
+
+  React.useEffect(() => {
+    // Only scroll to time if NO specific booking is highlighted
+    if (
+      !highlightedBookingId &&
+      timeIndicatorPosition !== null &&
+      scrollRef.current
+    ) {
+      scrollRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [bookings, selectedDate, timeIndicatorPosition, highlightedBookingId]);
 
   React.useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -24,6 +74,38 @@ export default function BookingCalendar({
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  React.useEffect(() => {
+    if (highlightedBookingId) {
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      const textInterval = setInterval(() => {
+        const element = document.getElementById(
+          `booking-${highlightedBookingId}`,
+        );
+        attempts++;
+
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.classList.add("ring-2", "ring-primary", "scale-105", "z-50");
+          setTimeout(() => {
+            element.classList.remove(
+              "ring-2",
+              "ring-primary",
+              "scale-105",
+              "z-50",
+            );
+          }, 3000);
+          clearInterval(textInterval);
+        } else if (attempts >= maxAttempts) {
+          clearInterval(textInterval);
+        }
+      }, 100);
+
+      return () => clearInterval(textInterval);
+    }
+  }, [highlightedBookingId, bookings]);
 
   const getBookingForSlot = (courtId, slotStart) => {
     // Return booking if it covers this slot
@@ -56,7 +138,7 @@ export default function BookingCalendar({
   return (
     <div className="h-full">
       <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-1 md:gap-4">
-        {courts.map((court) => (
+        {courts.map((court, index) => (
           <div
             key={court.id}
             className="bg-background-card-color rounded-lg p-2 md:p-4 border border-white/5 flex flex-col gap-2 md:gap-4"
@@ -73,7 +155,25 @@ export default function BookingCalendar({
             </div>
 
             {/* Slots */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 relative">
+              {timeIndicatorPosition !== null && index === 0 && (
+                <div
+                  ref={scrollRef}
+                  className="absolute left-[-10px] md:left-[-20px] z-[1] flex items-center pointer-events-none w-[382%] md:w-[220%] lg:w-[342%]"
+                  style={{ top: `${timeIndicatorPosition}px` }}
+                >
+                  <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-lg shadow-md shrink-0 mr-1 z-50">
+                    {currentTime.toLocaleTimeString("es-ES", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
+                  </div>
+                  <div className="h-[2px] left-[-4px] bg-red-500 w-full shadow-sm rounded-full opacity-80 relative">
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full shadow-sm" />
+                  </div>
+                </div>
+              )}
               {TIME_SLOTS.map((slot) => {
                 const booking = getBookingForSlot(court.id, slot);
                 const occupied = isSlotOccupied(court.id, slot);
@@ -130,6 +230,7 @@ export default function BookingCalendar({
                   return (
                     <div
                       key={slot}
+                      id={`booking-${booking.id}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onBookingClick(booking);
@@ -200,7 +301,7 @@ export default function BookingCalendar({
                       </div>
 
                       {/* Content: Players */}
-                      <div className=" flex-1 flex flex-col justify-between md:justify-end relative z-10 min-h-0 gap-4">
+                      <div className=" flex-1 flex flex-col justify-between md:justify-end relative min-h-0 gap-4">
                         <div className="flex flex-col gap-0.5 overflow-hidden">
                           {bookingPlayers.length > 0 ? (
                             bookingPlayers.map((bp) => (
@@ -252,7 +353,7 @@ export default function BookingCalendar({
                             {isPaid
                               ? "Pagado"
                               : showPendingWarning
-                                ? "Pago Pendiente"
+                                ? "Pendiente"
                                 : "Reservado"}
                           </span>
                         </div>
