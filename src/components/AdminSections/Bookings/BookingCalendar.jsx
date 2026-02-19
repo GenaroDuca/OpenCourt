@@ -177,10 +177,10 @@ export default function BookingCalendar({
                         </div>
                         <div className="flex items-center gap-1 md:gap-2 text-primary/80 text-[8px] md:text-sm font-medium ">
                           <BsPerson
-                            size={10}
-                            className="md:w-[14px] md:h-[14px]"
+                            size={14}
+                            className="md:w-[20px] md:h-[20px]"
                           />
-                          <span>
+                          <span className="text-[12px] md:text-sm">
                             {count}{" "}
                             <span className="hidden md:inline">Jugadores</span>
                           </span>
@@ -190,7 +190,7 @@ export default function BookingCalendar({
                       {/* Bottom Layout: Status */}
                       <div className="flex items-end justify-center md:justify-end gap-1 relative z-10 mt-1">
                         <div className="flex gap-1 flex-col items-end">
-                          <span className="text-[10px] md:text-xs font-bold text-white drop-shadow-md pb-0.5">
+                          <span className="text-[12px] md:text-xs font-bold text-white drop-shadow-md pb-0.5">
                             ${totalValue.toLocaleString()}
                           </span>
                           <span

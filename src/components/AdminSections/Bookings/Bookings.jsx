@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {
   BsCalendar3,
   BsChevronLeft,
@@ -16,7 +16,16 @@ import {
 import { getPlayers } from "../../../services/playerService";
 
 export default function Bookings() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      const [year, month, day] = dateParam.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+    return new Date();
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [courts, setCourts] = useState([]);
@@ -26,6 +35,46 @@ export default function Bookings() {
 
   const location = useLocation();
   const [pendingBookingId, setPendingBookingId] = useState(null);
+
+  // Sync URL with selected date
+  useEffect(() => {
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const day = String(selectedDate.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
+
+    // Only update if different to avoid infinite loops
+    if (searchParams.get("date") !== dateStr) {
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set("date", dateStr);
+          return newParams;
+        },
+        { replace: false },
+      );
+    }
+  }, [selectedDate, setSearchParams]);
+
+  // Sync state with URL changes (e.g. back button)
+  useEffect(() => {
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      const [year, month, day] = dateParam.split("-").map(Number);
+      // Create date at midnight local time
+      const newDate = new Date(year, month - 1, day);
+
+      // Check if date is valid and different
+      if (
+        !isNaN(newDate.getTime()) &&
+        (newDate.getFullYear() !== selectedDate.getFullYear() ||
+          newDate.getMonth() !== selectedDate.getMonth() ||
+          newDate.getDate() !== selectedDate.getDate())
+      ) {
+        setSelectedDate(newDate);
+      }
+    }
+  }, [searchParams]);
 
   // Handle navigation from other pages (e.g. PlayerDetails)
   useEffect(() => {
@@ -126,12 +175,12 @@ export default function Bookings() {
   return (
     <div className="h-full flex flex-col gap-4">
       {/* Header */}
-      <div className="flex flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex items-center justify-between w-full md:w-auto gap-4">
           <div className="flex items-center gap-2 bg-background-color p-1 rounded-lg border border-border-color">
             <button
               onClick={handlePrevDay}
-              className="p-2 hover:bg-white/5 rounded-md text-text-color transition-colors"
+              className="p-2 hover:bg-white/5 rounded-lg text-text-color transition-colors cursor-pointer"
             >
               <BsChevronLeft />
             </button>
@@ -141,7 +190,7 @@ export default function Bookings() {
             </div>
             <button
               onClick={handleNextDay}
-              className="p-2 hover:bg-white/5 rounded-md text-text-color transition-colors"
+              className="p-2 hover:bg-white/5 rounded-lg text-text-color transition-colors cursor-pointer"
             >
               <BsChevronRight />
             </button>
@@ -152,18 +201,30 @@ export default function Bookings() {
           >
             Hoy
           </button>
+
+          {/* Mobile Add Booking Button */}
+          <button
+            onClick={() => {
+              setEditingBooking(null);
+              setIsModalOpen(true);
+            }}
+            className="md:hidden flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
+          >
+            <BsPlus size={20} />
+          </button>
         </div>
 
-        <div className="text-xl font-bold text-white capitalize hidden md:block">
+        <div className="text-sm md:text-xl font-bold text-white capitalize">
           {formatDate(selectedDate)}
         </div>
 
+        {/* Desktop Add Booking Button */}
         <button
           onClick={() => {
             setEditingBooking(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
+          className="hidden md:flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
         >
           <BsPlus size={20} />
           <span className="hidden md:block">Nueva Reserva</span>

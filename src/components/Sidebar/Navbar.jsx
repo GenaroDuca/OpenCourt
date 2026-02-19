@@ -34,7 +34,7 @@ export default function Navbar() {
     const inactiveClass =
       "border-transparent text-text-color hover:bg-primary/10 hover:text-primary hover:border-primary/20";
     const logoutClass =
-      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/15 hover:text-red-500 hover:border-red-500/20";
+      "md:hidden flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/15 hover:text-red-500 hover:border-red-500/20";
 
     if (sectionName === "logout") return logoutClass;
 
@@ -50,7 +50,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="h-full flex md:flex-col justify-between">
+    <nav className="h-full flex md:flex-col justify-between items-center">
       <ul className="flex md:flex-col gap-2 md:gap-4 md:mt-4">
         <li>
           <Link to="/admin-panel/bookings" className={getLinkClass("bookings")}>

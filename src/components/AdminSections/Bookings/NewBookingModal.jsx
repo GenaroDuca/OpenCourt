@@ -16,6 +16,7 @@ import {
   deleteBooking,
 } from "../../../services/bookingService";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const getAvatarColor = (name) => {
   const colors = [
@@ -101,8 +102,17 @@ export default function NewBookingModal({
   const [selectedPlayerForPayment, setSelectedPlayerForPayment] =
     useState(null);
 
+  // Manual Price Mode State
+  const [manualPriceMode, setManualPriceMode] = useState(false);
+
   const timeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
+
+  const handleUpdatePlayerPrice = (id, newPrice) => {
+    setSelectedPlayers(
+      selectedPlayers.map((p) => (p.id === id ? { ...p, price: newPrice } : p)),
+    );
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -618,6 +628,25 @@ export default function NewBookingModal({
                 </div>
               </div>
 
+              {/* Manual Price Toggle */}
+              <div
+                className="flex items-center gap-2 cursor-pointer group justify-center"
+                onClick={() => setManualPriceMode(!manualPriceMode)}
+              >
+                <div
+                  className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                    manualPriceMode
+                      ? "bg-primary border-primary text-black"
+                      : "border-text-color/30 group-hover:border-primary/50"
+                  }`}
+                >
+                  {manualPriceMode && <BsCheckLg size={12} />}
+                </div>
+                <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                  Habilitar precio manual
+                </span>
+              </div>
+
               {/* Selected Players List */}
               <div className="grid grid-cols-1 gap-2">
                 {selectedPlayers.map((player) => (
@@ -646,25 +675,47 @@ export default function NewBookingModal({
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handleTogglePaid(player)}
-                        className={`text-[10px] md:text-md font-bold px-2 py-1 rounded-lg border transition-colors cursor-pointer ${
-                          player.is_paid
-                            ? "bg-green-500/10 text-green-500 border-green-500/30 hover:bg-green-500/20"
-                            : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
-                        }`}
-                      >
-                        {player.is_paid
-                          ? player.payment_method === "Transferencia"
-                            ? "TRANSF."
-                            : "EFECTIVO"
-                          : "PENDIENTE"}
-                      </button>
+                      <div className="flex flex-col-reverse md:flex-row items-center md:items-center gap-1 md:gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePaid(player)}
+                          className={`text-[10px] md:text-md font-bold px-2 py-1 rounded-lg border transition-colors cursor-pointer ${
+                            player.is_paid
+                              ? "bg-primary/10 text-primary hover:bg-primary/15 border-primary/20"
+                              : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
+                          }`}
+                        >
+                          {player.is_paid
+                            ? player.payment_method === "Transferencia"
+                              ? "TRANSF."
+                              : "EFECTIVO"
+                            : "PENDIENTE"}
+                        </button>
 
-                      <span className="text-sm font-bold text-primary">
-                        ${player.price}
-                      </span>
+                        {manualPriceMode ? (
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-text-color/50 text-xs font-bold">
+                              $
+                            </span>
+                            <input
+                              type="number"
+                              value={player.price}
+                              onChange={(e) =>
+                                handleUpdatePlayerPrice(
+                                  player.id,
+                                  Number(e.target.value),
+                                )
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-20 bg-black/20 border border-white/10 px-2 py-1 pl-4 text-sm font-bold text-primary focus:outline-none focus:border-primary/50 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-sm font-bold text-primary">
+                            ${player.price}
+                          </span>
+                        )}
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleRemovePlayer(player.id)}
@@ -680,7 +731,7 @@ export default function NewBookingModal({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-border-color bg-white/5 flex flex-col gap-4">
+          <div className="p-2 md:p-4 border-t border-border-color bg-white/5 flex flex-col gap-4">
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
                 <span className="text-xs text-text-color/60">
@@ -698,11 +749,11 @@ export default function NewBookingModal({
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-2 md:gap-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="gap-3 px-4 py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
+                className="gap-3 py-2 md:py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
               >
                 Cancelar
               </button>
@@ -710,7 +761,7 @@ export default function NewBookingModal({
               <button
                 type="submit"
                 disabled={loading || selectedPlayers.length === 0}
-                className={`gap-3 px-4 py-3 rounded-lg border transition-all duration-300 w-full font-bold flex items-center justify-center
+                className={`gap-3 py-2 md:py-3 rounded-lg border transition-all duration-300 w-full font-bold flex items-center justify-center
                   ${
                     !loading && selectedPlayers.length > 0
                       ? "bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
@@ -744,7 +795,7 @@ export default function NewBookingModal({
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setShowDeleteConfirm(false)}
           />
-          <div className="relative bg-background-card-color border border-white/10 p-6 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
             <h3 className="text-lg font-bold text-white text-center">
               ¿Eliminar Reserva?
             </h3>
@@ -752,18 +803,18 @@ export default function NewBookingModal({
               Esta acción no se puede deshacer. ¿Estás seguro de que deseas
               continuar?
             </p>
-            <div className="flex gap-3 mt-2">
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-2 rounded-lg border transition-colors font-medium text-sm bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
+                className="flex-1 py-2 md:py-3 rounded-lg border transition-colors font-medium text-sm bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors font-bold text-sm"
+                className="cursor-pointer flex-1 py-2 md:py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors font-bold text-sm"
               >
                 {loading ? "Eliminando..." : "Eliminar"}
               </button>
@@ -779,25 +830,25 @@ export default function NewBookingModal({
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setShowPaymentModal(false)}
           />
-          <div className="relative bg-background-card-color border border-white/10 p-6 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
             <h3 className="text-lg font-bold text-white text-center">
               Seleccionar Método de Pago
             </h3>
             <p className="text-text-color/70 text-center text-sm">
               ¿Cómo realizó el pago {selectedPlayerForPayment?.full_name}?
             </p>
-            <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="grid grid-cols-2 md:gap-3 gap-2">
               <button
                 type="button"
                 onClick={() => confirmPayment("Efectivo")}
-                className="py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500/20 transition-colors font-bold text-sm"
+                className="flex-1 py-2 md:py-3 rounded-lg border transition-colors font-medium text-sm bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
               >
                 Efectivo
               </button>
               <button
                 type="button"
                 onClick={() => confirmPayment("Transferencia")}
-                className="py-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500/20 transition-colors font-bold text-sm"
+                className="flex-1 py-2 md:py-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500/20 transition-colors font-medium text-sm cursor-pointer"
               >
                 Transferencia
               </button>
@@ -805,7 +856,7 @@ export default function NewBookingModal({
             <button
               type="button"
               onClick={() => setShowPaymentModal(false)}
-              className="mt-2 w-full py-2 text-text-color/50 hover:text-white text-xs text-center"
+              className="cursor-pointer flex-1 md:py-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors font-bold text-sm"
             >
               Cancelar
             </button>
