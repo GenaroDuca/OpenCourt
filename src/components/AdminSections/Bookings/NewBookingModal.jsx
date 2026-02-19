@@ -685,7 +685,7 @@ export default function NewBookingModal({
                           onClick={() => handleTogglePaid(player)}
                           className={`text-[10px] md:text-md font-bold px-2 py-1 rounded-lg border transition-colors cursor-pointer ${
                             player.is_paid
-                              ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 hover:border-green-500/30 font-semibold"
+                              ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 font-semibold"
                               : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
                           }`}
                         >

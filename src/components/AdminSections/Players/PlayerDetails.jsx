@@ -409,7 +409,7 @@ export default function PlayerDetails() {
                   <span
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                       booking.status === "Pagado"
-                        ? "bg-green-500/10 text-green-500 border-green-500/20"
+                        ? "bg-primary/10 text-primary border-primary/20"
                         : booking.status === "Reservado"
                           ? "bg-white/10 text-white/70 border-white/10"
                           : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
