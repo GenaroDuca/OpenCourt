@@ -106,6 +106,25 @@ export default function BookingCalendar({
                   const height =
                     slotsCount * slotHeight + (slotsCount - 1) * gap;
 
+                  const bookingObj = new Date(start);
+                  const nowObj = new Date();
+
+                  const bookingAtMidnight = new Date(
+                    bookingObj.getFullYear(),
+                    bookingObj.getMonth(),
+                    bookingObj.getDate(),
+                  );
+                  const todayAtMidnight = new Date(
+                    nowObj.getFullYear(),
+                    nowObj.getMonth(),
+                    nowObj.getDate(),
+                  );
+
+                  const isFutureDay =
+                    bookingAtMidnight.getTime() > todayAtMidnight.getTime();
+
+                  const showPendingWarning = !isPaid && !isFutureDay;
+
                   return (
                     <div
                       key={slot}
@@ -114,7 +133,7 @@ export default function BookingCalendar({
                         onBookingClick(booking);
                       }}
                       style={{ height: `${height}px` }}
-                      className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl md:rounded-lg p-2 md:p-5 flex flex-col gap-2 relative group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:border-primary/40 cursor-pointer"
+                      className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl md:rounded-lg p-2 md:p-5 flex flex-col gap-1 md:gap-2 relative group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:border-primary/40 cursor-pointer"
                     >
                       {/* Hover Glow Effect */}
                       <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -150,11 +169,11 @@ export default function BookingCalendar({
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                           </div>
-                        ) : (
+                        ) : showPendingWarning ? (
                           <div className="hidden w-3.5 h-3.5 md:w-6 md:h-6 md:flex rounded-full bg-yellow-500/20 border border-yellow-500/50 text-yellow-500 items-center justify-center text-[8px] md:text-[10px] font-bold shadow-sm shrink-0">
                             !
                           </div>
-                        )}
+                        ) : null}
                       </div>
 
                       {/* Content: Players */}
@@ -164,7 +183,7 @@ export default function BookingCalendar({
                             bookingPlayers.map((bp) => (
                               <span
                                 key={bp.id}
-                                className="font-bold text-[8px] md:text-xl text-white leading-tight truncate drop-shadow-sm transition-colors block"
+                                className="font-bold text-[8px] md:text-xl text-white leading-tight drop-shadow-sm transition-colors block"
                               >
                                 {bp.players?.full_name || "Desconocido"}
                               </span>
@@ -175,7 +194,11 @@ export default function BookingCalendar({
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 md:gap-2 text-primary/80 text-[8px] md:text-sm font-medium ">
+                      </div>
+
+                      {/* Bottom Layout: Status */}
+                      <div className="flex items-end justify-center md:justify-between gap-1 relative z-10">
+                        <div className="hidden md:flex items-center gap-1 md:gap-2 text-primary/80 text-[8px] md:text-sm font-medium ">
                           <BsPerson
                             size={14}
                             className="md:w-[20px] md:h-[20px]"
@@ -185,22 +208,25 @@ export default function BookingCalendar({
                             <span className="hidden md:inline">Jugadores</span>
                           </span>
                         </div>
-                      </div>
 
-                      {/* Bottom Layout: Status */}
-                      <div className="flex items-end justify-center md:justify-end gap-1 relative z-10 mt-1">
-                        <div className="flex gap-1 flex-col items-end">
-                          <span className="text-[12px] md:text-xs font-bold text-white drop-shadow-md pb-0.5">
+                        <div className="flex gap-0 md:gap-1 flex-col items-center md:items-end">
+                          <span className="text-[12px] md:text-base font-bold text-white drop-shadow-md pb-0.5 ">
                             ${totalValue.toLocaleString()}
                           </span>
                           <span
-                            className={`hidden md:block text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded md:rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
+                            className={`text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
                               isPaid
                                 ? "bg-green-500/10 border-green-500/30 text-green-500"
-                                : "bg-yellow-500/10 border-yellow-500/30 text-yellow-500"
+                                : showPendingWarning
+                                  ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-500"
+                                  : "bg-white/10 border-white/20 text-white/50"
                             }`}
                           >
-                            {isPaid ? "Pagado" : "Pago Pendiente"}
+                            {isPaid
+                              ? "Pagado"
+                              : showPendingWarning
+                                ? "Pago Pendiente"
+                                : "Reservado"}
                           </span>
                         </div>
                       </div>

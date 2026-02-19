@@ -173,9 +173,9 @@ export default function Bookings() {
   };
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-2 md:gap-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">
         <div className="flex items-center justify-between w-full md:w-auto gap-4">
           <div className="flex items-center gap-2 bg-background-color p-1 rounded-lg border border-border-color">
             <button
@@ -208,7 +208,7 @@ export default function Bookings() {
               setEditingBooking(null);
               setIsModalOpen(true);
             }}
-            className="md:hidden flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
+            className="flex md:hidden items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
           >
             <BsPlus size={20} />
           </button>

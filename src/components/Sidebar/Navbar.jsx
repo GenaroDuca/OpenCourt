@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "../../../supabaseClient";
+import { getMonthlyRevenue } from "../../services/bookingService";
 import toast from "react-hot-toast";
 
 import { IoIosTennisball } from "react-icons/io";
@@ -12,6 +13,15 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [monthlyStats, setMonthlyStats] = useState({
+    total: 0,
+    efectivo: 0,
+    transferencia: 0,
+  });
+
+  useEffect(() => {
+    getMonthlyRevenue().then(setMonthlyStats).catch(console.error);
+  }, [location.pathname]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -34,7 +44,7 @@ export default function Navbar() {
     const inactiveClass =
       "border-transparent text-text-color hover:bg-primary/10 hover:text-primary hover:border-primary/20";
     const logoutClass =
-      "md:hidden flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/15 hover:text-red-500 hover:border-red-500/20";
+      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/15 hover:text-red-500 hover:border-red-500/20";
 
     if (sectionName === "logout") return logoutClass;
 
@@ -51,7 +61,7 @@ export default function Navbar() {
 
   return (
     <nav className="h-full flex md:flex-col justify-between items-center">
-      <ul className="flex md:flex-col gap-2 md:gap-4 md:mt-4">
+      <ul className="flex md:flex-col gap-2 md:gap-4 md:mt-4 md:w-full w-auto">
         <li>
           <Link to="/admin-panel/bookings" className={getLinkClass("bookings")}>
             <IoIosTennisball size={20} className="hidden md:block" />
@@ -71,7 +81,36 @@ export default function Navbar() {
           </Link>
         </li>
       </ul>
-      <ul className="flex flex-col gap-1 md:mt-4">
+      <ul className="flex flex-col gap-2 md:gap-4 md:mt-4 md:w-full w-auto">
+        {/* Monthly Revenue Card */}
+        <li className="hidden md:block w-full">
+          <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-lg border border-white/10 w-full">
+            <h3 className="text-[10px] font-bold text-text-color/50 uppercase tracking-wider">
+              Recaudado {new Date().toLocaleString("es-AR", { month: "long" })}
+            </h3>
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between">
+                <span className="text-text-color text-sm">Efectivo</span>
+                <span className="text-text-color font-bold">
+                  ${monthlyStats.efectivo.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-color text-sm">Transferencia</span>
+                <span className="text-text-color font-bold">
+                  ${monthlyStats.transferencia.toLocaleString()}
+                </span>
+              </div>
+              <div className="h-px bg-white/10 my-1"></div>
+              <div className="flex justify-between text-sm font-bold">
+                <span className="text-white">Total</span>
+                <span className="text-text-color text-sm">
+                  ${monthlyStats.total.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </li>
         <li className={getLinkClass("logout")} onClick={handleLogout}>
           <TbLogout size={20} />
           <span className="cursor-pointer hidden md:block">Cerrar Sesión</span>

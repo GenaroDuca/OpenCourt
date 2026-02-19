@@ -135,13 +135,16 @@ export default function NewBookingModal({
         setCourtId(bookingToEdit.court_id);
 
         // Players
-        // Map booking_players to selectedPlayers format
         const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
           id: bp.players.id,
           full_name: bp.players.full_name,
           is_student: bp.players.is_student,
           price: bp.individual_price,
-          is_paid: bp.is_paid, // Include payment status
+          is_paid: bp.is_paid,
+          payment_method:
+            bp.payments && bp.payments.length > 0
+              ? bp.payments[0].payment_method
+              : null,
         }));
         setSelectedPlayers(mappedPlayers);
       } else {
@@ -355,8 +358,8 @@ export default function NewBookingModal({
         players: selectedPlayers.map((p) => ({
           id: p.id,
           price: p.price,
-          is_paid: p.is_paid, // Pass payment status
-          payment_method: p.payment_method, // Pass payment method
+          is_paid: p.is_paid,
+          payment_method: p.payment_method,
         })),
       };
 
@@ -380,6 +383,7 @@ export default function NewBookingModal({
       toast.error(err.message || "Error al guardar la reserva");
     } finally {
       setLoading(false);
+      onClose();
     }
   };
 
@@ -665,7 +669,7 @@ export default function NewBookingModal({
                       <div>
                         <Link
                           to={`/admin-panel/players/${player.id}`}
-                          className="text-sm font-bold text-text-color hover:text-primary hover:underline transition-colors"
+                          className="text-[12px] font-bold text-text-color hover:text-primary hover:underline transition-colors"
                         >
                           {player.full_name}
                         </Link>
