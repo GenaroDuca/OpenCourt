@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
-  BsPerson,
   BsTelephone,
-  BsEnvelope,
-  BsWallet2,
-  BsDownload,
   BsChevronRight,
-  BsCheckCircleFill,
-  BsClockHistory,
-  BsThreeDotsVertical,
 } from "react-icons/bs";
+import { TbEdit } from "react-icons/tb";
+
 import { supabase } from "../../../../supabaseClient";
+import NewPlayerForm from "./NewPlayerForm";
 
 const getAvatarColor = (name) => {
   const colors = [
@@ -57,6 +53,8 @@ export default function PlayerDetails() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("bookings");
   const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchPlayer = async () => {
@@ -90,7 +88,7 @@ export default function PlayerDetails() {
       }
     };
     fetchPlayer();
-  }, [id]);
+  }, [id, refreshKey]);
 
   if (loading) {
     return (
@@ -220,17 +218,34 @@ export default function PlayerDetails() {
 
   return (
     <div className="flex flex-col gap-4 w-full pb-10">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-text-color/50 text-sm font-medium">
-        <Link
-          to="/admin-panel/players"
-          className="hover:text-primary transition-colors"
+      {/* Breadcrumb & Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-text-color/50 text-sm font-medium">
+          <Link
+            to="/admin-panel/players"
+            className="hover:text-primary transition-colors"
+          >
+            Jugadores
+          </Link>
+          <BsChevronRight size={10} />
+          <span className="text-white">{player.full_name}</span>
+        </div>
+
+        <button
+          onClick={() => setIsEditing(true)}
+          className="flex items-center md:px-4 md:py-3 p-2 gap-2 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
         >
-          Jugadores
-        </Link>
-        <BsChevronRight size={10} />
-        <span className="text-white">{player.full_name}</span>
+          <TbEdit size={20} />
+          <span className="hidden md:block">Editar</span>
+        </button>
       </div>
+
+      <NewPlayerForm
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        onPlayerAdded={() => setRefreshKey((prev) => prev + 1)}
+        playerToEdit={player}
+      />
 
       {/* Top Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BsPerson,
   BsTelephone,
@@ -11,14 +11,34 @@ import { IoIosPodium } from "react-icons/io";
 
 import toast from "react-hot-toast";
 
-import { createPlayer } from "../../../services/playerService";
+import { createPlayer, updatePlayer } from "../../../services/playerService";
 
-export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
+export default function NewPlayerForm({
+  isOpen,
+  onClose,
+  onPlayerAdded,
+  playerToEdit,
+}) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [category, setCategory] = useState("Sin Categoría");
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && playerToEdit) {
+      setFullName(playerToEdit.full_name || "");
+      setPhone(playerToEdit.phone || "");
+      setCategory(playerToEdit.category || "Sin Categoría");
+      setIsStudent(playerToEdit.is_student || false);
+    } else if (isOpen && !playerToEdit) {
+      // Reset for new player
+      setFullName("");
+      setPhone("");
+      setCategory("Sin Categoría");
+      setIsStudent(false);
+    }
+  }, [isOpen, playerToEdit]);
 
   const CATEGORIES = [
     "Sin Categoría",
@@ -55,26 +75,33 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
     if (isFormValid) {
       setLoading(true);
       try {
-        await createPlayer({
+        const playerData = {
           full_name: fullName,
           phone,
           is_student: isStudent,
           category,
-        });
-        toast.success("¡Jugador agregado exitosamente!");
+        };
+
+        if (playerToEdit) {
+          await updatePlayer(playerToEdit.id, playerData);
+          toast.success("¡Jugador actualizado exitosamente!");
+        } else {
+          await createPlayer(playerData);
+          toast.success("¡Jugador agregado exitosamente!");
+        }
       } catch (error) {
         console.error(error);
-        toast.error("Error al agregar el jugador");
+        toast.error(
+          playerToEdit
+            ? "Error al actualizar el jugador"
+            : "Error al agregar el jugador",
+        );
       } finally {
-        setFullName("");
-        setPhone("");
-        setCategory("Sin Categoría");
-        setIsStudent(false);
         setLoading(false);
         if (onPlayerAdded) {
           onPlayerAdded();
         }
-        // onClose();
+        onClose(); // Close strictly after operation
       }
     }
   };
@@ -103,10 +130,12 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
         <div className="flex justify-between items-center md:p-4 p-2 border-b border-border-color bg-white/5">
           <div>
             <h2 className="text-xl md:text-3xl font-bold text-white">
-              Nuevo Jugador
+              {playerToEdit ? "Editar Jugador" : "Nuevo Jugador"}
             </h2>
             <p className="text-xs md:text-sm text-text-color/60">
-              Ingresa los datos del nuevo jugador
+              {playerToEdit
+                ? "Modifica los datos del jugador"
+                : "Ingresa los datos del nuevo jugador"}
             </p>
           </div>
           <button
@@ -269,16 +298,16 @@ export default function NewPlayerForm({ isOpen, onClose, onPlayerAdded }) {
           <div className="p-2 md:p-4 border-t border-border-color bg-white/5 flex gap-2 md:gap-4 ">
             <button
               onClick={onClose}
-              className="gap-3 px-4 py-2 md:py-3 rounded-lg border  cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
+              className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm  text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
             >
               Cancelar
             </button>
             <button
               disabled={!isFormValid || loading}
-              className={`gap-3 px-4 py-2 md:py-3 rounded-lg border transition-all duration-300 w-full font-bold flex items-center justify-center
+              className={`md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm 
                 ${
                   isFormValid && !loading
-                    ? "bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 cursor-pointer"
+                    ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
                     : "bg-text-color/10 text-text-color/50 border-text-color/10 cursor-not-allowed opacity-50"
                 }`}
             >
