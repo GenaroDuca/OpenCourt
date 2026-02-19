@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import {
-  BsTelephone,
-  BsChevronRight,
-} from "react-icons/bs";
+import { BsTelephone, BsChevronRight } from "react-icons/bs";
 import { TbEdit } from "react-icons/tb";
 
 import { supabase } from "../../../../supabaseClient";
@@ -62,7 +59,7 @@ export default function PlayerDetails() {
         const { data, error } = await supabase
           .from("players")
           .select(
-            "*, booking_players(id, individual_price, is_paid, created_at, bookings(court_id, start_time, end_time, courts(name)), payments(amount, payment_method, paid_at))",
+            "*, booking_players(id, individual_price, is_paid, created_at, bookings(id, court_id, start_time, end_time, courts(name)), payments(amount, payment_method, paid_at))",
           )
           .eq("id", id)
           .single();
@@ -77,8 +74,6 @@ export default function PlayerDetails() {
               bp.payments && bp.payments.length > 0 ? bp.payments[0] : null,
           }));
         }
-
-        console.log("DEBUG PLAYER RAW:", data);
 
         setPlayer(data);
       } catch (error) {
@@ -209,11 +204,9 @@ export default function PlayerDetails() {
     const day = String(dateObj.getDate()).padStart(2, "0");
     const dateStr = `${year}-${month}-${day}`;
 
-    navigate(`/admin-panel/bookings?date=${dateStr}`, {
-      state: {
-        bookingId: booking.bookingId,
-      },
-    });
+    navigate(
+      `/admin-panel/bookings?date=${dateStr}&bookingId=${booking.bookingId}`,
+    );
   };
 
   return (

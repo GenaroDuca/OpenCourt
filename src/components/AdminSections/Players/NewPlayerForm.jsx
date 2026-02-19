@@ -6,12 +6,17 @@ import {
   BsX,
   BsCheckLg,
   BsChevronDown,
+  BsTrash,
 } from "react-icons/bs";
 import { IoIosPodium } from "react-icons/io";
 
 import toast from "react-hot-toast";
 
-import { createPlayer, updatePlayer } from "../../../services/playerService";
+import {
+  createPlayer,
+  updatePlayer,
+  deletePlayer,
+} from "../../../services/playerService";
 
 export default function NewPlayerForm({
   isOpen,
@@ -56,6 +61,7 @@ export default function NewPlayerForm({
     "Caballero 6ta",
   ];
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handlePhoneChange = (e) => {
     const value = e.target.value;
@@ -106,6 +112,30 @@ export default function NewPlayerForm({
     }
   };
 
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!playerToEdit) return;
+
+    setLoading(true);
+    try {
+      await deletePlayer(playerToEdit.id);
+      toast.success("Jugador eliminado exitosamente");
+      if (onPlayerAdded) {
+        onPlayerAdded(); // Reload list
+      }
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al eliminar el jugador");
+    } finally {
+      setLoading(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <div
       className={`fixed inset-0 z-50 flex justify-end ${
@@ -140,7 +170,7 @@ export default function NewPlayerForm({
           </div>
           <button
             onClick={onClose}
-            className="md:p-2 p-0.5 rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
+            className="md:p-2 p-1.5 rounded-lg border cursor-pointer transition-all duration-300 text-text-color/50 hover:text-white bg-white/5 border-white/5 hover:bg-white/10"
           >
             <BsX size={24} />
           </button>
@@ -317,9 +347,56 @@ export default function NewPlayerForm({
                 "Guardar"
               )}
             </button>
+            {playerToEdit && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="gap-2 px-4 py-3 rounded-lg border border-red-500/20 text-red-500 bg-red-500/10 hover:bg-red-500/15 cursor-pointer transition-all duration-300 font-medium flex items-center justify-center text-sm"
+              >
+                <BsTrash size={18} />
+              </button>
+            )}
           </div>
         </form>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowDeleteConfirm(false)}
+          />
+          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-lg font-bold text-white text-center">
+              ¿Eliminar Jugador?
+            </h3>
+            <p className="text-text-color/70 text-center text-sm">
+              Esta acción eliminará al jugador{" "}
+              <span className="text-white font-bold">
+                {playerToEdit?.full_name}
+              </span>{" "}
+              y todo su historial. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
+              >
+                {loading ? "Eliminando..." : "Eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
