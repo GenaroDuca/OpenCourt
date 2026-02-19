@@ -13,7 +13,7 @@ export default function PlayersHeader({ setIsAddingPlayer }) {
         </div>
         <button
           onClick={() => setIsAddingPlayer(true)}
-          className="md:hidden flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
+          className="flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-border-color hover:bg-primary/15"
         >
           <BsPlus size={20} />
           <p className="hidden md:block text-sm">Agregar Jugador</p>

@@ -64,37 +64,23 @@ export default function PlayerDetails() {
         const { data, error } = await supabase
           .from("players")
           .select(
-            "*, booking_players(id, individual_price, is_paid, created_at, bookings(court_id, start_time, end_time, courts(name)))",
+            "*, booking_players(id, individual_price, is_paid, created_at, bookings(court_id, start_time, end_time, courts(name)), payments(amount, payment_method, paid_at))",
           )
           .eq("id", id)
           .single();
 
         if (error) throw error;
 
-        // Fetch payments separately to ensure no relationship issues
-        const bpIds = data.booking_players?.map((bp) => bp.id) || [];
-        let paymentsMap = {};
-
-        if (bpIds.length > 0) {
-          const { data: paymentsData, error: paymentsError } = await supabase
-            .from("payments")
-            .select("*")
-            .in("booking_player_id", bpIds);
-
-          if (!paymentsError && paymentsData) {
-            paymentsData.forEach((p) => {
-              paymentsMap[p.booking_player_id] = p;
-            });
-          }
-        }
-
-        // Attach payments to proper booking_players
+        // Simplify data structure
         if (data.booking_players) {
           data.booking_players = data.booking_players.map((bp) => ({
             ...bp,
-            payment: paymentsMap[bp.id] || null,
+            payment:
+              bp.payments && bp.payments.length > 0 ? bp.payments[0] : null,
           }));
         }
+
+        console.log("DEBUG PLAYER RAW:", data);
 
         setPlayer(data);
       } catch (error) {
@@ -116,10 +102,32 @@ export default function PlayerDetails() {
 
   if (!player) return <div className="text-white">Player not found</div>;
 
-  // Calculate pending debt
+  // Calculate pending debt (excluding future bookings)
   const pendingDebt =
     player.booking_players?.reduce((acc, bp) => {
-      return !bp.is_paid ? acc + (Number(bp.individual_price) || 0) : acc;
+      if (bp.is_paid) return acc;
+
+      const startTime = bp.bookings?.start_time;
+      if (!startTime) return acc; // Should not happen
+
+      const bookingTime = new Date(startTime);
+      const nowIdx = new Date();
+      const bookingDay = new Date(
+        bookingTime.getFullYear(),
+        bookingTime.getMonth(),
+        bookingTime.getDate(),
+      );
+      const currentDay = new Date(
+        nowIdx.getFullYear(),
+        nowIdx.getMonth(),
+        nowIdx.getDate(),
+      );
+
+      if (bookingDay.getTime() > currentDay.getTime()) {
+        return acc; // Future booking, not debt yet
+      }
+
+      return acc + (Number(bp.individual_price) || 0);
     }, 0) || 0;
 
   const totalContributed =
@@ -146,6 +154,24 @@ export default function PlayerDetails() {
 
       const payment = bp.payment;
 
+      // Check status logic
+      const nowIdx = new Date();
+      const bookingDay = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate(),
+      );
+      const currentDay = new Date(
+        nowIdx.getFullYear(),
+        nowIdx.getMonth(),
+        nowIdx.getDate(),
+      );
+      const isFuture = bookingDay.getTime() > currentDay.getTime();
+
+      let statusRaw = "Pendiente";
+      if (bp.is_paid) statusRaw = "Pagado";
+      else if (isFuture) statusRaw = "Reservado";
+
       return {
         id: bp.id,
         date: start.toLocaleDateString("es-AR", {
@@ -163,7 +189,7 @@ export default function PlayerDetails() {
         courtDetail: courtName,
         duration: `${duration} min`,
         amount: `$${bp.individual_price}`,
-        status: bp.is_paid ? "Pagado" : "Pendiente",
+        status: statusRaw,
         paymentMethod: payment?.payment_method || "-",
         paidAt: payment?.paid_at
           ? new Date(payment.paid_at).toLocaleDateString("es-AR", {
@@ -369,7 +395,9 @@ export default function PlayerDetails() {
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                       booking.status === "Pagado"
                         ? "bg-green-500/10 text-green-500 border-green-500/20"
-                        : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
+                        : booking.status === "Reservado"
+                          ? "bg-white/10 text-white/70 border-white/10"
+                          : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
                     }`}
                   >
                     {booking.status}

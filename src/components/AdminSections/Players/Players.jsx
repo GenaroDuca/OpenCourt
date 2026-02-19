@@ -36,25 +36,77 @@ export default function Players() {
   const totalStudents = players.filter((p) => p.is_student).length;
   const totalNonStudents = players.filter((p) => !p.is_student).length;
 
+  // Helper to check if a booking player has actionable debt (past or today)
+  const hasActionableDebt = (player) => {
+    if (!player.booking_players) return false;
+    return player.booking_players.some((bp) => {
+      if (bp.is_paid) return false;
+
+      const startTime = bp.bookings?.start_time;
+      if (!startTime) return false;
+
+      const bookingTime = new Date(startTime);
+      const nowIdx = new Date();
+      // Reset times to compare strictly dates
+      const bookingDay = new Date(
+        bookingTime.getFullYear(),
+        bookingTime.getMonth(),
+        bookingTime.getDate(),
+      );
+      const currentDay = new Date(
+        nowIdx.getFullYear(),
+        nowIdx.getMonth(),
+        nowIdx.getDate(),
+      );
+
+      // If future, not debt
+      if (bookingDay.getTime() > currentDay.getTime()) {
+        return false;
+      }
+      return true;
+    });
+  };
+
   // Calculate students who have pending payments (debt)
   const studentsWithDebt = players.filter(
-    (p) =>
-      p.is_student &&
-      p.booking_players &&
-      p.booking_players.some((booking) => !booking.is_paid),
+    (p) => p.is_student && hasActionableDebt(p),
   ).length;
 
-  const filteredPlayers = players.filter((player) => {
-    const matchesSearch =
-      player.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (player.phone && player.phone.includes(searchTerm));
+  const filteredPlayers = players
+    .filter((player) => {
+      const matchesSearch =
+        player.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (player.phone && player.phone.includes(searchTerm));
 
-    if (filterType === "student") return matchesSearch && player.is_student;
-    if (filterType === "non_student")
-      return matchesSearch && !player.is_student;
+      if (filterType === "student") return matchesSearch && player.is_student;
+      if (filterType === "non_student")
+        return matchesSearch && !player.is_student;
 
-    return matchesSearch;
-  });
+      if (filterType === "pending") {
+        const hasDebt = player.is_student && hasActionableDebt(player);
+        return matchesSearch && hasDebt;
+      }
+
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (filterType === "value") {
+        // "Valor" logic: Sort by Total Paid Amount (Descending)
+        const getPlayerTotal = (p) => {
+          if (!p.booking_players) return 0;
+          return p.booking_players.reduce((sum, bp) => {
+            // Only count if marked as paid
+            if (bp.is_paid) {
+              return sum + Number(bp.individual_price || 0);
+            }
+            return sum;
+          }, 0);
+        };
+
+        return getPlayerTotal(b) - getPlayerTotal(a);
+      }
+      return 0;
+    });
 
   return (
     <>

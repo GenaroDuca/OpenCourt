@@ -7,7 +7,8 @@ export const getBookingsByDate = async (date) => {
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const { data, error } = await supabase
+  // 1. Fetch Regular Bookings
+  const { data: bookings, error } = await supabase
     .from("bookings")
     .select(
       `
@@ -17,6 +18,9 @@ export const getBookingsByDate = async (date) => {
         id,
         individual_price,
         is_paid,
+        payments (
+          payment_method
+        ),
         players (
           id,
           full_name,
@@ -29,7 +33,8 @@ export const getBookingsByDate = async (date) => {
     .lte("start_time", endOfDay.toISOString());
 
   if (error) throw error;
-  return data;
+
+  return bookings;
 };
 
 export const createBooking = async (bookingData) => {
@@ -255,4 +260,29 @@ export const getPriceConfig = async () => {
 
   if (error) throw error;
   return data;
+};
+
+export const getMonthlyRevenue = async () => {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  endOfMonth.setHours(23, 59, 59, 999);
+
+  const { data: payments, error } = await supabase
+    .from("payments")
+    .select("amount, payment_method")
+    .gte("paid_at", startOfMonth.toISOString())
+    .lte("paid_at", endOfMonth.toISOString());
+
+  if (error) throw error;
+
+  const total = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const efectivo = payments
+    .filter((p) => p.payment_method === "Efectivo")
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+  const transferencia = payments
+    .filter((p) => p.payment_method === "Transferencia")
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+
+  return { total, efectivo, transferencia };
 };

@@ -23,10 +23,10 @@ export default function PlayersFilter({
       </div>
 
       {/* Filter Buttons */}
-      <div className="flex justify-between p-1.5 bg-background-color rounded-lg border border-border-color w-full md:w-auto">
+      <div className="flex justify-between p-1.5 bg-background-color rounded-lg border border-border-color w-full md:w-auto overflow-x-auto gap-2">
         <button
           onClick={() => setFilterType("all")}
-          className={`md:px-6 px-2 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+          className={`md:px-4 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
             filterType === "all"
               ? "bg-background-card-color text-white shadow-lg"
               : "text-text-color/40 hover:text-text-color/80"
@@ -36,7 +36,7 @@ export default function PlayersFilter({
         </button>
         <button
           onClick={() => setFilterType("student")}
-          className={`md:px-6 px-2 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+          className={`md:px-4 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
             filterType === "student"
               ? "bg-background-card-color text-white shadow-lg"
               : "text-text-color/40 hover:text-text-color/80"
@@ -46,13 +46,33 @@ export default function PlayersFilter({
         </button>
         <button
           onClick={() => setFilterType("non_student")}
-          className={`md:px-6 px-2 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+          className={`md:px-4 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
             filterType === "non_student"
               ? "bg-background-card-color text-white shadow-lg"
               : "text-text-color/40 hover:text-text-color/80"
           }`}
         >
           No Alumnos
+        </button>
+        <button
+          onClick={() => setFilterType("pending")}
+          className={`md:px-4 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
+            filterType === "pending"
+              ? "bg-background-card-color text-white shadow-lg"
+              : "text-text-color/40 hover:text-text-color/80"
+          }`}
+        >
+          Pendiente
+        </button>
+        <button
+          onClick={() => setFilterType("value")}
+          className={`md:px-4 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
+            filterType === "value"
+              ? "bg-background-card-color text-white shadow-lg"
+              : "text-text-color/40 hover:text-text-color/80"
+          }`}
+        >
+          Valor
         </button>
       </div>
     </div>

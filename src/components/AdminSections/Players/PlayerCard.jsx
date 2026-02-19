@@ -57,7 +57,32 @@ export default function PlayerCard({ data }) {
     return sum;
   }, 0);
 
-  const hasPendingPayment = bookings.some((booking) => !booking.is_paid);
+  const hasPendingPayment = bookings.some((bp) => {
+    if (bp.is_paid) return false;
+
+    // Check if the booking is in the future
+    const startTime = bp.bookings?.start_time;
+    if (!startTime) return false;
+
+    const bookingTime = new Date(startTime);
+    const now = new Date();
+
+    const bookingDay = new Date(
+      bookingTime.getFullYear(),
+      bookingTime.getMonth(),
+      bookingTime.getDate(),
+    );
+    const currentDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
+    // If booking is in the future, it's not pending yet (for display purposes)
+    const isFutureDay = bookingDay.getTime() > currentDay.getTime();
+
+    return !isFutureDay;
+  });
 
   return (
     <div
@@ -81,7 +106,7 @@ export default function PlayerCard({ data }) {
             Status
           </span>
           {hasPendingPayment ? (
-            <div className="px-3 py-1.5 rounded-lg bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 flex items-center gap-2 text-xs font-bold">
+            <div className=" px-3 py-1.5 rounded-lg bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 flex items-center gap-2 text-xs font-bold">
               <BsExclamationCircleFill size={10} />
               <span>PAGO PENDIENTE</span>
             </div>

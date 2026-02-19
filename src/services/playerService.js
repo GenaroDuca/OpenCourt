@@ -4,7 +4,9 @@ import { supabase } from "../../supabaseClient";
 export const getPlayers = async () => {
   const { data: players, error } = await supabase
     .from("players")
-    .select("*, booking_players(individual_price, is_paid)")
+    .select(
+      "*, booking_players(individual_price, is_paid, bookings(start_time))",
+    )
     .order("created_at", { ascending: false });
 
   if (error) {
