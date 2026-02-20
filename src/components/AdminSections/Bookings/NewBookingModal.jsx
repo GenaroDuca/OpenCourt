@@ -1,23 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  BsX,
-  BsPerson,
-  BsClock,
-  BsPlus,
-  BsTrash,
-  BsChevronDown,
-  BsSearch,
-  BsCheckLg,
-  BsCalendar3,
-} from "react-icons/bs";
-import {
   createBooking,
   updateBooking,
   deleteBooking,
 } from "../../../services/bookingService";
 import { createPlayer } from "../../../services/playerService";
-import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import {
+  BsX,
+  BsClock,
+  BsChevronDown,
+  BsCheckLg,
+  BsPerson,
+  BsPlus,
+  BsSearch,
+  BsTrash,
+} from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 const getAvatarColor = (name) => {
   const colors = [
@@ -110,8 +109,7 @@ export default function NewBookingModal({
   // Fixed Booking State
   const [isFixed, setIsFixed] = useState(false);
 
-  // Details State
-  const [details, setDetails] = useState("");
+  const [details, setDetails] = useState(""); // Details for notes
 
   const timeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
@@ -124,7 +122,7 @@ export default function NewBookingModal({
 
   useEffect(() => {
     if (isOpen) {
-      if (bookingToEdit) {
+      if (bookingToEdit && !bookingToEdit.is_blockout) {
         // EDIT MODE: Pre-fill data
         const start = new Date(bookingToEdit.start_time);
 
@@ -142,25 +140,32 @@ export default function NewBookingModal({
         // Court
         setCourtId(bookingToEdit.court_id);
 
-        // Fixed
-        setIsFixed(bookingToEdit.is_fixed || false);
-
         // Details
         setDetails(bookingToEdit.details || "");
 
-        // Players
-        const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
-          id: bp.players.id,
-          full_name: bp.players.full_name,
-          is_student: bp.players.is_student,
-          price: bp.individual_price,
-          is_paid: bp.is_paid,
-          payment_method:
-            bp.payments && bp.payments.length > 0
-              ? bp.payments[0].payment_method
-              : null,
-        }));
-        setSelectedPlayers(mappedPlayers);
+        // Players & Type Detection
+        if (
+          bookingToEdit.booking_players &&
+          bookingToEdit.booking_players.length > 0
+        ) {
+          const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
+            id: bp.players.id,
+            full_name: bp.players.full_name,
+            is_student: bp.players.is_student,
+            price: bp.individual_price,
+            is_paid: bp.is_paid,
+            payment_method:
+              bp.payments && bp.payments.length > 0
+                ? bp.payments[0].payment_method
+                : null,
+          }));
+          setSelectedPlayers(mappedPlayers);
+          setIsFixed(bookingToEdit.is_fixed || false);
+        } else {
+          // Fallback if needed
+          setSelectedPlayers([]);
+          setIsFixed(false);
+        }
       } else {
         // CREATE MODE: Defaults
         const targetDate = initialDate || new Date();
@@ -177,7 +182,7 @@ export default function NewBookingModal({
         if (initialCourtId) {
           setCourtId(initialCourtId);
         } else {
-          // Find first available court logic (same as before)
+          // ... (existing court finding logic)
           const proposedStart = new Date(`${targetDateStr}T${targetStartTime}`);
           const proposedEnd = new Date(
             proposedStart.getTime() + DURATION_MINUTES * 60000,
@@ -196,7 +201,6 @@ export default function NewBookingModal({
           setCourtId(availableCourt ? availableCourt.id : "");
         }
 
-        setSelectedPlayers([]);
         setSelectedPlayers([]);
         setIsFixed(false);
         setDetails("");
@@ -319,24 +323,6 @@ export default function NewBookingModal({
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = async () => {
-    if (!bookingToEdit) return;
-
-    setLoading(true);
-    try {
-      await deleteBooking(bookingToEdit.id);
-      toast.success("Reserva eliminada");
-      onBookingAdded(); // Reload
-      onClose();
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Error al eliminar");
-    } finally {
-      setLoading(false);
-      setShowDeleteConfirm(false);
-    }
-  };
-
   const isCourtOccupied = (targetCourtId) => {
     if (!dateStr || !startTime) return false;
 
@@ -369,10 +355,35 @@ export default function NewBookingModal({
 
   const totalPrice = selectedPlayers.reduce((sum, p) => sum + p.price, 0);
 
+  const confirmDelete = async () => {
+    if (!bookingToEdit) return;
+
+    setLoading(true);
+    try {
+      await deleteBooking(bookingToEdit.id);
+      toast.success("Reserva eliminada");
+
+      onBookingAdded(); // Reload
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error al eliminar");
+    } finally {
+      setLoading(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!courtId || selectedPlayers.length === 0) {
-      toast.error("Selecciona una cancha y al menos un jugador");
+
+    // Validation
+    if (!courtId) {
+      toast.error("Selecciona una cancha");
+      return;
+    }
+    if (selectedPlayers.length === 0) {
+      toast.error("Selecciona al menos un jugador");
       return;
     }
 
@@ -388,6 +399,7 @@ export default function NewBookingModal({
         startDateTime.getTime() + DURATION_MINUTES * 60000,
       );
 
+      // Handle Regular Booking
       const payload = {
         court_id: courtId,
         start_time: startDateTime.toISOString(),
@@ -403,11 +415,12 @@ export default function NewBookingModal({
       };
 
       if (bookingToEdit) {
+        // Trying to update a booking
         await updateBooking(bookingToEdit.id, payload);
-        toast.success("Reserva actualizada exitosamente");
+        toast.success("Actualizado exitosamente");
       } else {
         await createBooking(payload);
-        toast.success("Reserva creada exitosamente");
+        toast.success("Creado exitosamente");
       }
 
       onBookingAdded();
@@ -416,10 +429,11 @@ export default function NewBookingModal({
         onClose();
       } else {
         setSelectedPlayers([]);
+        setDetails(""); // Reset details
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Error al guardar la reserva");
+      toast.error(err.message || "Error al guardar");
     } finally {
       setLoading(false);
       onClose();
@@ -452,7 +466,7 @@ export default function NewBookingModal({
         <div className="flex justify-between items-center md:p-4 p-2 border-b border-border-color bg-white/5">
           <div>
             <h2 className="text-xl md:text-3xl font-bold text-white">
-              {bookingToEdit ? "Editar Reserva" : "Nueva Reserva"}
+              {bookingToEdit ? "Editar" : "Nuevo"}
             </h2>
             <input
               type="date"
@@ -472,17 +486,8 @@ export default function NewBookingModal({
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col">
-          <div className="flex-1 overflow-y-auto md:px-4 px-2 mt-4 custom-scrollbar ">
+          <div className="flex-1 overflow-y-auto md:px-4 px-2 pb-4 mt-4 custom-scrollbar ">
             <div className="flex flex-col gap-4">
-              {/* Separators */}
-              <div className="flex items-center gap-3 text-primary">
-                <span className="h-px flex-1 bg-border-color"></span>
-                <span className="uppercase text-xs font-bold tracking-widest text-text-color-green">
-                  Detalles del Turno
-                </span>
-                <span className="h-px flex-1 bg-border-color"></span>
-              </div>
-
               {/* Court Selection */}
               <div className="flex flex-col gap-2 ">
                 <div className="grid grid-cols-3 gap-2">
@@ -563,7 +568,8 @@ export default function NewBookingModal({
                   </div>
                 </div>
               </div>
-              {/* Players Section */}
+
+              {/* PLAYERS SECTION */}
               <div className="flex items-center gap-3 text-primary">
                 <span className="h-px flex-1 bg-border-color"></span>
                 <span className="uppercase text-xs font-bold tracking-widest text-text-color-green">
@@ -826,16 +832,17 @@ export default function NewBookingModal({
                 ))}
               </div>
 
-              {/* Details Textarea */}
-              <div className="flex flex-col gap-2">
+              {/* Notes / Details for Regular Booking */}
+              <div className="flex flex-col gap-2 mt-2">
                 <label className="text-sm font-medium text-text-color">
-                  Detalles / Notas
+                  Notas (Opcional)
                 </label>
                 <textarea
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
-                  placeholder="Agregar notas sobre la reserva..."
-                  className="w-full bg-background-color border border-border-color rounded-lg p-3 text-sm text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none h-24"
+                  placeholder="Algún detalle extra..."
+                  rows={2}
+                  className="w-full h-20 px-3 py-2 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none text-sm"
                 />
               </div>
             </div>
@@ -864,7 +871,7 @@ export default function NewBookingModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm  text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
+                className="md:h-[50px] w-full flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
               >
                 Cancelar
               </button>

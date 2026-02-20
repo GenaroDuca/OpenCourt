@@ -136,7 +136,7 @@ export default function BookingCalendar({
   };
 
   return (
-    <div >
+    <div>
       <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-1 md:gap-4">
         {courts.map((court, index) => (
           <div
@@ -225,6 +225,7 @@ export default function BookingCalendar({
 
                   const showPendingWarning = !isPaid && !isFutureDay;
 
+                  const isBlock = bookingPlayers.length === 0;
                   const isFixed = booking.is_fixed;
 
                   return (
@@ -237,15 +238,21 @@ export default function BookingCalendar({
                       }}
                       style={{ height: `${height}px` }}
                       className={`bg-linear-to-br ${
-                        isFixed
-                          ? "from-blue-500/20 to-blue-500/5 border-blue-500/20 hover:shadow-blue-500/10 hover:border-blue-500/40"
-                          : "from-primary/20 to-primary/5 border-primary/20 hover:shadow-primary/10 hover:border-primary/40"
+                        isBlock
+                          ? "bg-zinc-900/50 border-white/5 border-dashed hover:bg-zinc-900/80 transition-colors"
+                          : isFixed
+                            ? "from-blue-500/20 to-blue-500/5 border-blue-500/20 hover:shadow-blue-500/10 hover:border-blue-500/40"
+                            : "from-primary/20 to-primary/5 border-primary/20 hover:shadow-primary/10 hover:border-primary/40"
                       } border rounded-2xl md:rounded-lg p-2 md:p-5 flex flex-col gap-1 md:gap-2 relative group overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer`}
                     >
                       {/* Hover Glow Effect */}
                       <div
                         className={`absolute inset-0 ${
-                          isFixed ? "bg-blue-500/5" : "bg-primary/5"
+                          isBlock
+                            ? "bg-transparent"
+                            : isFixed
+                              ? "bg-blue-500/5"
+                              : "bg-primary/5"
                         } opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
                       />
 
@@ -254,9 +261,11 @@ export default function BookingCalendar({
                         <div className="flex items-center gap-1 ">
                           <span
                             className={`w-full text-center md:w-auto ${
-                              isFixed
-                                ? "bg-blue-500/20 border-blue-500/20 text-blue-500"
-                                : "bg-primary/20 border-primary/20 text-primary"
+                              isBlock
+                                ? "bg-zinc-800/50 border-zinc-700/50 text-zinc-500"
+                                : isFixed
+                                  ? "bg-blue-500/20 border-blue-500/20 text-blue-500"
+                                  : "bg-primary/20 border-primary/20 text-primary"
                             } border px-1 py-0.5 md:px-3 md:py-1 rounded-lg text-[8px] md:text-xs font-bold backdrop-blur-sm shadow-sm whitespace-nowrap overflow-hidden text-ellipsis`}
                           >
                             {start.toLocaleTimeString(["es-ES"], {
@@ -270,14 +279,20 @@ export default function BookingCalendar({
                             })}
                           </span>
                           {isFixed && (
-                            <span className="hidden md:block text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm bg-blue-500/10 border-blue-500/30 text-blue-500">
+                            <span
+                              className={`hidden md:block text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
+                                isBlock
+                                  ? "bg-white/10 border-white/20 text-white/50"
+                                  : "bg-blue-500/10 border-blue-500/30 text-blue-500"
+                              }`}
+                            >
                               Fijo
                             </span>
                           )}
                         </div>
 
-                        {/* Paid Icon - Visible on all screens for quick status */}
-                        {isPaid ? (
+                        {/* Paid Icon - Only for bookings */}
+                        {!isBlock && isPaid ? (
                           <div className="hidden w-3.5 h-3.5 md:w-6 md:h-6 md:flex rounded-full bg-primary/20 border border-primary/30 items-center justify-center text-primary shadow-sm shrink-0">
                             <svg
                               width="12"
@@ -285,88 +300,105 @@ export default function BookingCalendar({
                               viewBox="0 0 24 24"
                               fill="none"
                               stroke="currentColor"
-                              strokeWidth="3"
+                              strokeWidth="4"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              className="w-2.5 h-2.5 md:w-3.5 md:h-3.5"
                             >
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                           </div>
-                        ) : showPendingWarning ? (
-                          <div className="hidden w-3.5 h-3.5 md:w-6 md:h-6 md:flex rounded-full bg-yellow-500/20 border border-yellow-500/50 text-yellow-500 items-center justify-center text-[8px] md:text-[10px] font-bold shadow-sm shrink-0">
-                            !
+                        ) : !isBlock && showPendingWarning ? (
+                          <div className="hidden w-3.5 h-3.5 md:w-6 md:h-6 md:flex rounded-full bg-yellow-500/20 border border-yellow-500/30 items-center justify-center text-yellow-500 shadow-sm shrink-0 animate-pulse">
+                            <span className="text-[10px] font-bold">!</span>
                           </div>
                         ) : null}
                       </div>
 
-                      {/* Content: Players */}
-                      <div className=" flex-1 flex flex-col justify-between md:justify-end relative min-h-0 gap-4">
-                        <div className="flex flex-col gap-0.5 overflow-hidden">
-                          {bookingPlayers.length > 0 ? (
-                            bookingPlayers.map((bp) => (
-                              <span
-                                key={bp.id}
-                                className="font-bold text-[8px] text-center md:text-left md:text-xl text-white leading-tight drop-shadow-sm transition-colors block"
-                              >
-                                {bp.players?.full_name || "Desconocido"}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="font-bold text-[8px] md:text-sm text-white">
-                              Desconocido
+                      {/* Content: Players or Block Details */}
+                      <div className=" flex-1 flex flex-col justify-between md:justify-center relative min-h-0 gap-4">
+                        {isBlock ? (
+                          <div className="flex items-center justify-center h-full">
+                            <span className="font-bold text-[10px] md:text-sm text-zinc-600 text-center italic leading-tight uppercase tracking-wider">
+                              {booking.details || "DESHABILITADO"}
                             </span>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-0.5 overflow-hidden justify-end h-full">
+                            {bookingPlayers.length > 0 ? (
+                              bookingPlayers.map((bp) => (
+                                <span
+                                  key={bp.id}
+                                  className="font-bold text-[8px] text-center md:text-left md:text-xl text-white leading-tight drop-shadow-sm transition-colors block"
+                                >
+                                  {bp.players?.full_name || "Desconocido"}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="font-bold text-[8px] md:text-sm text-white">
+                                Desconocido
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Bottom Layout: Status */}
-                      <div className="flex items-end justify-center md:justify-between gap-1 relative z-10">
-                        <div
-                          className={`hidden md:flex items-center gap-1 md:gap-2 ${
-                            isFixed ? "text-blue-500/80" : "text-primary/80"
-                          } text-[8px] md:text-sm font-medium `}
-                        >
-                          <BsPerson
-                            size={14}
-                            className="md:w-[20px] md:h-[20px]"
-                          />
-                          <span className="text-[12px] md:text-sm">
-                            {count}{" "}
-                            <span className="hidden md:inline">Jugadores</span>
-                          </span>
-                        </div>
-
-                        <div className="flex gap-0 md:gap-1 flex-col items-center md:items-end">
-                          <span className="text-[12px] md:text-base font-bold text-white drop-shadow-md pb-0.5 ">
-                            ${totalValue.toLocaleString()}
-                          </span>
-                          <span
-                            className={`text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
-                              isPaid
-                                ? "bg-green-500/10 border-green-500/30 text-green-500"
-                                : showPendingWarning
-                                  ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-500"
-                                  : "bg-white/10 border-white/20 text-white/50"
-                            }`}
+                      {/* Bottom Layout: Status (Only for regular bookings) */}
+                      {!isBlock && (
+                        <div className="flex items-end justify-center md:justify-between gap-1 relative z-10">
+                          <div
+                            className={`hidden md:flex items-center gap-1 md:gap-2 ${
+                              isFixed ? "text-blue-500/80" : "text-primary/80"
+                            } text-[8px] md:text-sm font-medium `}
                           >
-                            {isPaid
-                              ? "Pagado"
-                              : showPendingWarning
-                                ? "Pendiente"
-                                : "Reservado"}
-                          </span>
-                        </div>
-                      </div>
+                            <BsPerson
+                              size={14}
+                              className="md:w-[20px] md:h-[20px]"
+                            />
+                            <span className="text-[12px] md:text-sm">
+                              {count}{" "}
+                              <span className="hidden md:inline">
+                                Jugadores
+                              </span>
+                            </span>
+                          </div>
 
-                      {/* Decorative background element - hidden on mobile to screen clutter */}
+                          <div className="flex gap-0 md:gap-1 flex-col items-center md:items-end">
+                            <span className="text-[12px] md:text-base font-bold text-white drop-shadow-md pb-0.5 ">
+                              ${totalValue.toLocaleString()}
+                            </span>
+                            <span
+                              className={`text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
+                                isPaid
+                                  ? "bg-green-500/10 border-green-500/30 text-green-500"
+                                  : showPendingWarning
+                                    ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-500"
+                                    : "bg-white/10 border-white/20 text-white/50"
+                              }`}
+                            >
+                              {isPaid
+                                ? "Pagado"
+                                : showPendingWarning
+                                  ? "Pendiente"
+                                  : "Reservado"}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Decorative background element */}
                       <div
                         className={`hidden md:block absolute -bottom-4 -right-4 w-24 h-24 ${
-                          isFixed ? "bg-blue-500/10" : "bg-primary/10"
+                          isBlock
+                            ? "bg-white/5"
+                            : isFixed
+                              ? "bg-blue-500/10"
+                              : "bg-primary/10"
                         } rounded-full blur-2xl ${
-                          isFixed
-                            ? "group-hover:bg-blue-500/20"
-                            : "group-hover:bg-primary/20"
+                          isBlock
+                            ? "group-hover:bg-white/10"
+                            : isFixed
+                              ? "group-hover:bg-blue-500/20"
+                              : "group-hover:bg-primary/20"
                         } transition-all duration-500`}
                       />
                     </div>
