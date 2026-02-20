@@ -5,7 +5,7 @@ import { getMonthlyRevenue } from "../../services/bookingService";
 import toast from "react-hot-toast";
 
 import { IoIosTennisball } from "react-icons/io";
-import { BsPeopleFill } from "react-icons/bs";
+import { BsPeopleFill, BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { FaMoneyBills } from "react-icons/fa6";
 import { TbLogout } from "react-icons/tb";
 
@@ -13,15 +13,28 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [monthlyStats, setMonthlyStats] = useState({
     total: 0,
     efectivo: 0,
     transferencia: 0,
   });
 
+  const handlePrevMonth = () => {
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1),
+    );
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1),
+    );
+  };
+
   useEffect(() => {
-    getMonthlyRevenue().then(setMonthlyStats).catch(console.error);
-  }, [location.pathname]);
+    getMonthlyRevenue(selectedDate).then(setMonthlyStats).catch(console.error);
+  }, [location.pathname, selectedDate]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -85,9 +98,24 @@ export default function Navbar() {
         {/* Monthly Revenue Card */}
         <li className="hidden md:block w-full">
           <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-lg border border-white/10 w-full">
-            <h3 className="text-[10px] font-bold text-text-color/50 uppercase tracking-wider">
-              Recaudado {new Date().toLocaleString("es-AR", { month: "long" })}
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={handlePrevMonth}
+                className="p-1 hover:bg-white/10 text-text-color/50 hover:text-white transition-colors rounded-lg cursor-pointer"
+              >
+                <BsChevronLeft size={12} />
+              </button>
+              <h3 className="text-[10px] font-bold text-text-color/50 uppercase tracking-wider">
+                Recaudado{" "}
+                {selectedDate.toLocaleString("es-AR", { month: "long" })}
+              </h3>
+              <button
+                onClick={handleNextMonth}
+                className="p-1  hover:bg-white/10 text-text-color/50 hover:text-white transition-colors rounded-lg cursor-pointer"
+              >
+                <BsChevronRight size={12} />
+              </button>
+            </div>
             <div className="flex flex-col gap-1">
               <div className="flex justify-between">
                 <span className="text-text-color text-sm">Efectivo</span>
