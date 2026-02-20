@@ -23,12 +23,12 @@ export default function PlayersFilter({
       </div>
 
       {/* Filter Buttons */}
-      <div className="flex justify-between p-1.5 bg-background-color rounded-lg border border-border-color w-auto overflow-x-auto gap-2">
+      <div className="flex justify-between  p-2 bg-background-color rounded-lg border border-border-color w-auto overflow-x-auto gap-2">
         <button
           onClick={() =>
             setFilterType(filterType === "value" ? "all" : "value")
           }
-          className={`md:px-4 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
+          className={`rounded-lg px-4 py-1 text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
             filterType === "value"
               ? "bg-background-card-color text-white shadow-lg"
               : "text-text-color/40 hover:text-text-color/80"
