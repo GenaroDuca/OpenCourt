@@ -342,6 +342,28 @@ export default function NewBookingModal({
     });
   };
 
+  // Ensure selected court is valid when schedule changes
+  useEffect(() => {
+    if (!isOpen || !dateStr || !startTime || !courts || courts.length === 0)
+      return;
+
+    if (courtId && !isCourtOccupied(courtId)) {
+      return;
+    }
+
+    const availableCourt = courts.find((c) => !isCourtOccupied(c.id));
+    if (availableCourt) {
+      if (courtId !== availableCourt.id) {
+        setCourtId(availableCourt.id);
+      }
+    } else {
+      if (courtId !== "") {
+        setCourtId("");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateStr, startTime, bookings, courts, isOpen]);
+
   const calculateEndTime = (start) => {
     const [hours, minutes] = start.split(":").map(Number);
     const date = new Date();
@@ -380,6 +402,10 @@ export default function NewBookingModal({
     // Validation
     if (!courtId) {
       toast.error("Selecciona una cancha");
+      return;
+    }
+    if (isCourtOccupied(courtId)) {
+      toast.error("La cancha seleccionada no está disponible en este horario");
       return;
     }
     if (selectedPlayers.length === 0) {
@@ -440,9 +466,13 @@ export default function NewBookingModal({
     }
   };
 
-  const filteredPlayers = players.filter((p) =>
-    p.full_name.toLowerCase().includes(playerSearch.toLowerCase()),
-  );
+  const filteredPlayers = players.filter((p) => {
+    const searchLow = playerSearch.toLowerCase();
+    return (
+      p.full_name.toLowerCase().includes(searchLow) ||
+      (p.category && p.category.toLowerCase().includes(searchLow))
+    );
+  });
 
   return (
     <div
@@ -466,19 +496,19 @@ export default function NewBookingModal({
         <div className="flex justify-between items-center md:p-4 p-2 border-b border-border-color bg-white/5">
           <div>
             <h2 className="text-xl md:text-3xl font-bold text-white">
-              {bookingToEdit ? "Editar" : "Nuevo"}
+              {bookingToEdit ? "Editar Reserva" : "Nueva Reserva"}
             </h2>
             <input
               type="date"
               value={dateStr}
               onChange={(e) => setDateStr(e.target.value)}
               style={{ colorScheme: "dark" }}
-              className="mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-text-color text-xs md:text-sm font-medium focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer hover:bg-white/10 shadow-sm"
+              className="mt-1 bg-white/5 border border-white/10 rounded-2xl md:rounded-lg px-3 py-1.5 text-text-color text-xs md:text-sm font-medium focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer hover:bg-white/10 shadow-sm"
             />
           </div>
           <button
             onClick={onClose}
-            className="md:p-2 p-0.5 rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
+            className="md:p-2 p-0.5 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
           >
             <BsX size={24} />
           </button>
@@ -499,12 +529,12 @@ export default function NewBookingModal({
                         type="button"
                         onClick={() => !occupied && setCourtId(court.id)}
                         disabled={occupied}
-                        className={`py-3 text-sm font-bold rounded-lg transition-all border duration-300 flex flex-col items-center justify-center ${
+                        className={`md:px-4 md:py-3 p-2 text-xs md:text-sm font-bold rounded-2xl md:rounded-lg transition-all border duration-300 flex flex-col items-center justify-center ${
                           courtId === court.id
-                            ? "bg-primary text-black border-primary scale-105 shadow-lg shadow-primary/20"
+                            ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
                             : occupied
                               ? "bg-gray-500/10 text-gray-500/50 border-gray-500/10 cursor-not-allowed opacity-70"
-                              : "bg-background-color text-text-color/60 border-border-color hover:border-primary/50 cursor-pointer hover:bg-white/5"
+                              : "bg-background-color text-text-color/60 border-border-color hover:border-primary/50 cursor-pointer"
                         }`}
                       >
                         {court.name}
@@ -524,9 +554,9 @@ export default function NewBookingModal({
                 </label>
                 <div
                   onClick={() => setIsTimeOpen(!isTimeOpen)}
-                  className={`w-full pl-4 pr-4 py-2 rounded-lg bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                  className={`w-full pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
                     isTimeOpen
-                      ? "border-primary ring-1 ring-primary/50"
+                      ? "border-primary/30"
                       : "border-border-color hover:border-primary/30"
                   }`}
                 >
@@ -541,13 +571,13 @@ export default function NewBookingModal({
 
                 {/* Dropdown Options */}
                 <div
-                  className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
+                  className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-2xl md:rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
                     isTimeOpen
                       ? "opacity-100 translate-y-0 scale-100 visible"
                       : "opacity-0 -translate-y-2 scale-95 invisible pointer-events-none"
                   }`}
                 >
-                  <div className="max-h-60 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-2">
+                  <div className="max-h-60 overflow-y-auto custom-scrollbar p-2 md:p-4 flex flex-col gap-2">
                     {TIME_OPTIONS.map((time) => (
                       <div
                         key={time}
@@ -555,7 +585,7 @@ export default function NewBookingModal({
                           setStartTime(time);
                           setIsTimeOpen(false);
                         }}
-                        className={`px-4 py-2.5 rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
+                        className={`p-2 md:p-4 rounded-2xl md:rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
                           startTime === time
                             ? "bg-primary/10 text-primary font-medium"
                             : "text-text-color hover:bg-white/5"
@@ -588,9 +618,9 @@ export default function NewBookingModal({
                 </label>
                 <div
                   onClick={() => setIsPlayerOpen(!isPlayerOpen)}
-                  className={`w-full pl-4 pr-4 py-2 rounded-lg bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                  className={`w-full pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
                     isPlayerOpen
-                      ? "border-primary ring-1 ring-primary/50"
+                      ? "border-primary/30"
                       : "border-border-color hover:border-primary/30"
                   }`}
                 >
@@ -600,12 +630,14 @@ export default function NewBookingModal({
                       Seleccionar jugador...
                     </span>
                   </div>
-                  <BsPlus size={24} className="text-primary" />
+                  <BsChevronDown
+                    className={`text-text-color/50 transition-transform duration-300 ${isPlayerOpen ? "rotate-180" : ""}`}
+                  />
                 </div>
 
                 {/* Dropdown Options */}
                 <div
-                  className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
+                  className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-2xl md:rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
                     isPlayerOpen
                       ? "opacity-100 translate-y-0 scale-100 visible"
                       : "opacity-0 -translate-y-2 scale-95 invisible pointer-events-none"
@@ -613,7 +645,7 @@ export default function NewBookingModal({
                 >
                   {/* Search Input inside Dropdown */}
                   <div className="p-2 border-b border-border-color">
-                    <div className="flex items-center bg-background-color rounded-lg px-3 py-2 border border-border-color">
+                    <div className="flex items-center bg-background-color rounded-2xl md:rounded-lg px-3 py-2 border border-border-color">
                       <BsSearch className="text-text-color/50 mr-2" />
                       <input
                         type="text"
@@ -639,7 +671,7 @@ export default function NewBookingModal({
                             onClick={() =>
                               !isSelected && handleAddPlayer(player)
                             }
-                            className={`px-4 py-2.5 rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
+                            className={`p-2 rounded-2xl md:rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
                               isSelected
                                 ? "bg-primary/10 text-primary font-medium"
                                 : "text-text-color hover:bg-white/5"
@@ -674,7 +706,7 @@ export default function NewBookingModal({
                           No se encontraron jugadores
                         </div>
                         {playerSearch.trim() !== "" && (
-                          <div className="flex flex-col gap-2 bg-white/5 p-2 rounded-lg border border-primary/20">
+                          <div className="flex flex-col gap-2 bg-white/5 p-2 rounded-2xl md:rounded-lg border border-primary/20">
                             <div
                               className="flex items-center justify-center gap-2 px-1 cursor-pointer group"
                               onClick={() =>
@@ -699,7 +731,7 @@ export default function NewBookingModal({
                             <button
                               type="button"
                               onClick={handleQuickAddPlayer}
-                              className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg py-2 text-sm font-bold transition-all text-center flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                              className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-2xl md:rounded-lg py-2 text-sm font-bold transition-all text-center flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                             >
                               <BsPlus size={18} />
                               Agregar "{playerSearch}"
@@ -719,7 +751,7 @@ export default function NewBookingModal({
                   onClick={() => setManualPriceMode(!manualPriceMode)}
                 >
                   <div
-                    className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                    className={`w-5 h-5 rounded-2xl md:rounded-lg border flex items-center justify-center transition-all ${
                       manualPriceMode
                         ? "bg-primary border-primary text-black"
                         : "border-text-color/30 group-hover:border-primary/50"
@@ -738,7 +770,7 @@ export default function NewBookingModal({
                   onClick={() => setIsFixed(!isFixed)}
                 >
                   <div
-                    className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                    className={`w-5 h-5 rounded-2xl md:rounded-lg border flex items-center justify-center transition-all ${
                       isFixed
                         ? "bg-primary border-primary text-black"
                         : "border-text-color/30 group-hover:border-primary/50"
@@ -756,7 +788,7 @@ export default function NewBookingModal({
                 {selectedPlayers.map((player) => (
                   <div
                     key={player.id}
-                    className="flex justify-between items-center bg-background-color p-3 rounded-lg border border-border-color group"
+                    className="flex justify-between items-center bg-background-color p-2 md:p-4 rounded-2xl md:rounded-lg border border-border-color group"
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -783,7 +815,7 @@ export default function NewBookingModal({
                         <button
                           type="button"
                           onClick={() => handleTogglePaid(player)}
-                          className={`text-[10px] md:text-md font-bold px-2 py-1 rounded-lg border transition-colors cursor-pointer ${
+                          className={`text-[8px] md:text-md font-bold px-2 py-1 rounded-2xl md:rounded-lg border transition-colors cursor-pointer ${
                             player.is_paid
                               ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 font-semibold"
                               : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
@@ -811,11 +843,11 @@ export default function NewBookingModal({
                                 )
                               }
                               onClick={(e) => e.stopPropagation()}
-                              className="w-20 bg-black/20 border border-white/10 px-2 py-1 pl-4 text-sm font-bold text-primary focus:outline-none focus:border-primary/50 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-20 bg-black/20 border border-white/10 px-2 py-1 pl-4 text-sm font-bold text-primary focus:outline-none focus:border-primary/50 rounded-2xl md:rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                           </div>
                         ) : (
-                          <span className="text-sm font-bold text-primary">
+                          <span className="text-xs md:text-sm font-bold text-primary">
                             ${player.price}
                           </span>
                         )}
@@ -842,7 +874,7 @@ export default function NewBookingModal({
                   onChange={(e) => setDetails(e.target.value)}
                   placeholder="Algún detalle extra..."
                   rows={2}
-                  className="w-full h-20 px-3 py-2 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none text-sm"
+                  className="w-full h-20 p-2 md:p-4  rounded-2xl md:rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none text-sm"
                 />
               </div>
             </div>
@@ -871,7 +903,7 @@ export default function NewBookingModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="md:h-[50px] w-full flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
+                className="md:h-[50px] w-full flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15"
               >
                 Cancelar
               </button>
@@ -879,7 +911,7 @@ export default function NewBookingModal({
               <button
                 type="submit"
                 disabled={loading || selectedPlayers.length === 0}
-                className={`md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm 
+                className={`md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm 
                   ${
                     !loading && selectedPlayers.length > 0
                       ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
@@ -896,7 +928,7 @@ export default function NewBookingModal({
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="gap-2 px-4 py-3 rounded-lg border border-red-500/20 text-red-500 bg-red-500/10 hover:bg-red-500/15 cursor-pointer transition-all duration-300 font-medium flex items-center justify-center"
+                  className="gap-2 px-4 py-3 rounded-2xl md:rounded-lg border border-red-500/20 text-red-500 bg-red-500/10 hover:bg-red-500/15 cursor-pointer transition-all duration-300 font-medium flex items-center justify-center"
                 >
                   <BsTrash />
                 </button>
@@ -913,7 +945,7 @@ export default function NewBookingModal({
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setShowDeleteConfirm(false)}
           />
-          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-2xl md:rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
             <h3 className="text-lg font-bold text-white text-center">
               ¿Eliminar Reserva?
             </h3>
@@ -925,14 +957,14 @@ export default function NewBookingModal({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
+                className="md:h-[50px] w-full flex items-center justify-center md:px-4 md:py-3 p-2 gap-3  rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
               >
                 {loading ? "Eliminando..." : "Eliminar"}
               </button>
@@ -948,7 +980,7 @@ export default function NewBookingModal({
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setShowPaymentModal(false)}
           />
-          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-2xl md:rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
             <h3 className="text-lg font-bold text-white text-center">
               Seleccionar Método de Pago
             </h3>
@@ -959,14 +991,14 @@ export default function NewBookingModal({
               <button
                 type="button"
                 onClick={() => confirmPayment("Efectivo")}
-                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
               >
                 Efectivo
               </button>
               <button
                 type="button"
                 onClick={() => confirmPayment("Transferencia")}
-                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 cursor-pointer"
+                className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 cursor-pointer"
               >
                 Transferencia
               </button>
@@ -974,7 +1006,7 @@ export default function NewBookingModal({
             <button
               type="button"
               onClick={() => setShowPaymentModal(false)}
-              className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
+              className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm  bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
             >
               Cancelar
             </button>

@@ -218,7 +218,7 @@ export default function Bookings() {
       {/* Header */}
       <div className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 bg-background-color/80 backdrop-blur-sm w-full py-2 border-b border-white/5">
         <div className="flex items-center justify-between w-full md:w-auto gap-2">
-          <div className="flex items-center gap-2 bg-background-color p-1 rounded-lg border border-border-color">
+          <div className="flex items-center gap-2 bg-background-color p-1 rounded-2xl md:rounded-lg border border-border-color">
             <button
               onClick={handlePrevDay}
               className="p-2 hover:bg-white/5 rounded-lg text-text-color transition-colors cursor-pointer"
@@ -310,7 +310,7 @@ export default function Bookings() {
 
       {/* Mobile Stats Cards - Only visible on mobile, outside sticky header */}
       <div className="md:hidden grid grid-cols-2 gap-2 w-full">
-        <div className="flex items-center gap-2 bg-background-color/50 px-3 py-2 rounded-lg border border-white/5">
+        <div className="flex items-center gap-2 bg-background-color/50 px-3 py-2 rounded-2xl md:rounded-lg border border-white/5">
           <div className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg">
             <BsWallet2 size={16} />
           </div>
@@ -324,7 +324,7 @@ export default function Bookings() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-background-color/50 px-3 py-2 rounded-lg border border-white/5">
+        <div className="flex items-center gap-2 bg-background-color/50 px-3 py-2 rounded-2xl md:rounded-lg border border-white/5">
           <div className="p-1.5 bg-green-500/10 text-green-500 rounded-lg">
             <BsCurrencyDollar size={16} />
           </div>
