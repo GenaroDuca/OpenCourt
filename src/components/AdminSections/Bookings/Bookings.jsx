@@ -53,7 +53,8 @@ export default function Bookings() {
         { replace: false },
       );
     }
-  }, [selectedDate, setSearchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   // Sync state with URL changes (e.g. back button)
   useEffect(() => {
@@ -178,9 +179,9 @@ export default function Bookings() {
   };
 
   return (
-    <div className="h-full flex flex-col gap-2 md:gap-4">
+    <div className="flex flex-col gap-2 md:gap-4 relative">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">
+      <div className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 bg-background-color/80 backdrop-blur-sm w-full py-2 border-b border-white/5">
         <div className="flex items-center justify-between w-full md:w-auto gap-4">
           <div className="flex items-center gap-2 bg-background-color p-1 rounded-lg border border-border-color">
             <button
@@ -237,7 +238,7 @@ export default function Bookings() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="flex-1 min-h-0">
+      <div className="min-h-0">
         {loading ? (
           <div className="w-full h-full flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

@@ -123,7 +123,20 @@ export const createBooking = async (bookingData) => {
         .from("payments")
         .insert(paymentsToInsert);
 
-      if (paymentError) console.error("Error creating payments:", paymentError);
+      if (paymentError) {
+        console.error("Error creating payments:", paymentError);
+        // Rollback: Set is_paid to false for players who were supposed to be paid
+        const idsToUpdate = paymentsToInsert.map((p) => p.booking_player_id);
+        if (idsToUpdate.length > 0) {
+          await supabase
+            .from("booking_players")
+            .update({ is_paid: false })
+            .in("id", idsToUpdate);
+        }
+        throw new Error(
+          "Error al registrar los pagos. La reserva se creó pero figura como NO PAGADA.",
+        );
+      }
     }
 
     return booking;
@@ -310,7 +323,15 @@ export const updateBooking = async (id, bookingData) => {
 
         if (paymentError) {
           console.error("Error creating payment:", paymentError);
-          throw paymentError;
+          // Rollback: Set is_paid to false for this specific player
+          await supabase
+            .from("booking_players")
+            .update({ is_paid: false })
+            .eq("id", finalBookingPlayerId);
+
+          throw new Error(
+            `Error al registrar pago para el jugador. Se marcó como NO PAGADO. Detalle: ${paymentError.message}`,
+          );
         }
       }
     }
@@ -346,27 +367,52 @@ export const getPriceConfig = async () => {
   return data;
 };
 
-export const getMonthlyRevenue = async () => {
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+export const getMonthlyRevenue = async (date = new Date()) => {
+  const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
   endOfMonth.setHours(23, 59, 59, 999);
 
-  const { data: payments, error } = await supabase
-    .from("payments")
-    .select("amount, payment_method")
-    .gte("paid_at", startOfMonth.toISOString())
-    .lte("paid_at", endOfMonth.toISOString());
+  // Fetch bookings in the month with their players and payments
+  const { data: bookings, error } = await supabase
+    .from("bookings")
+    .select(
+      `
+      id,
+      start_time,
+      booking_players (
+        individual_price,
+        is_paid,
+        payments (
+          amount,
+          payment_method
+        )
+      )
+    `,
+    )
+    .gte("start_time", startOfMonth.toISOString())
+    .lte("start_time", endOfMonth.toISOString());
 
   if (error) throw error;
 
-  const total = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-  const efectivo = payments
-    .filter((p) => p.payment_method === "Efectivo")
-    .reduce((sum, p) => sum + Number(p.amount), 0);
-  const transferencia = payments
-    .filter((p) => p.payment_method === "Transferencia")
-    .reduce((sum, p) => sum + Number(p.amount), 0);
+  let total = 0;
+  let efectivo = 0;
+  let transferencia = 0;
+
+  bookings.forEach((booking) => {
+    booking.booking_players.forEach((bp) => {
+      const payment =
+        bp.payments && bp.payments.length > 0 ? bp.payments[0] : null;
+
+      if (payment) {
+        const amount = Number(payment.amount) || 0;
+        total += amount;
+
+        const method = payment.payment_method || "Otros";
+        if (method === "Efectivo") efectivo += amount;
+        else if (method === "Transferencia") transferencia += amount;
+      }
+    });
+  });
 
   return { total, efectivo, transferencia };
 };

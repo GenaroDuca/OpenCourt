@@ -68,11 +68,24 @@ export default function PlayerDetails() {
 
         // Simplify data structure
         if (data.booking_players) {
-          data.booking_players = data.booking_players.map((bp) => ({
-            ...bp,
-            payment:
-              bp.payments && bp.payments.length > 0 ? bp.payments[0] : null,
-          }));
+          data.booking_players = data.booking_players.map((bp) => {
+            const sortedPayments =
+              bp.payments?.sort(
+                (a, b) => new Date(b.paid_at) - new Date(a.paid_at),
+              ) || [];
+
+            if (bp.is_paid && sortedPayments.length === 0) {
+              console.warn(
+                `Inconsistency found: BookingPlayer ${bp.id} is marked PAID but has no payment records.`,
+                bp,
+              );
+            }
+
+            return {
+              ...bp,
+              payment: sortedPayments.length > 0 ? sortedPayments[0] : null,
+            };
+          });
         }
 
         setPlayer(data);
@@ -101,7 +114,7 @@ export default function PlayerDetails() {
       if (bp.is_paid) return acc;
 
       const startTime = bp.bookings?.start_time;
-      if (!startTime) return acc; // Should not happen
+      if (!startTime) return acc;
 
       const bookingTime = new Date(startTime);
       const nowIdx = new Date();
@@ -137,65 +150,68 @@ export default function PlayerDetails() {
 
   // Format bookings for the table
   const bookings =
-    player.booking_players?.map((bp) => {
-      const booking = bp.bookings;
-      const courtName = booking?.courts?.name || "Cancha desconocida";
-      // Calculate duration
-      const start = new Date(booking.start_time); // Assuming ISO string
-      const end = new Date(booking.end_time);
-      const duration = (end - start) / (1000 * 60); // minutes
+    player.booking_players
+      ?.map((bp) => {
+        const booking = bp.bookings;
+        const courtName = booking?.courts?.name || "Cancha desconocida";
+        // Calculate duration
+        const start = new Date(booking.start_time); // Assuming ISO string
+        const end = new Date(booking.end_time);
+        const duration = (end - start) / (1000 * 60); // minutes
 
-      const payment = bp.payment;
+        const payment = bp.payment;
 
-      // Check status logic
-      const nowIdx = new Date();
-      const bookingDay = new Date(
-        start.getFullYear(),
-        start.getMonth(),
-        start.getDate(),
-      );
-      const currentDay = new Date(
-        nowIdx.getFullYear(),
-        nowIdx.getMonth(),
-        nowIdx.getDate(),
-      );
-      const isFuture = bookingDay.getTime() > currentDay.getTime();
+        // Check status logic
+        const nowIdx = new Date();
+        const bookingDay = new Date(
+          start.getFullYear(),
+          start.getMonth(),
+          start.getDate(),
+        );
+        const currentDay = new Date(
+          nowIdx.getFullYear(),
+          nowIdx.getMonth(),
+          nowIdx.getDate(),
+        );
+        const isFuture = bookingDay.getTime() > currentDay.getTime();
 
-      let statusRaw = "Pendiente";
-      if (bp.is_paid) statusRaw = "Pagado";
-      else if (isFuture) statusRaw = "Reservado";
+        let statusRaw = "Pendiente";
+        if (bp.is_paid) statusRaw = "Pagado";
+        else if (isFuture) statusRaw = "Reservado";
 
-      return {
-        id: bp.id,
-        date: start.toLocaleDateString("es-AR", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        }),
-        time: `${start.toLocaleTimeString("es-AR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })} - ${end.toLocaleTimeString("es-AR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}`,
-        courtDetail: courtName,
-        duration: `${duration} min`,
-        amount: `$${bp.individual_price}`,
-        status: statusRaw,
-        paymentMethod: payment?.payment_method || "-",
-        paidAt: payment?.paid_at
-          ? new Date(payment.paid_at).toLocaleDateString("es-AR", {
-              day: "numeric",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "-",
-        rawDate: booking.start_time,
-        bookingId: booking.id,
-      };
-    }) || [];
+        return {
+          id: bp.id,
+          date: start.toLocaleDateString("es-AR", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+          time: `${start.toLocaleTimeString("es-AR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })} - ${end.toLocaleTimeString("es-AR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}`,
+          courtDetail: courtName,
+          duration: `${duration} min`,
+          amount: `$${bp.individual_price}`,
+          status: statusRaw,
+          paymentMethod: payment?.payment_method || "-",
+          paidAt: payment?.paid_at
+            ? new Date(payment.paid_at).toLocaleDateString("es-AR", {
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+                minute: "2-digit",
+              })
+            : "-",
+          rawDate: booking.start_time,
+          bookingId: booking.id,
+        };
+      })
+      .sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate)) || [];
 
   const handleBookingClick = (booking) => {
     const dateObj = new Date(booking.rawDate);
@@ -302,7 +318,11 @@ export default function PlayerDetails() {
 
         {/* Payment Status Card */}
         <div className="bg-background-card-color border border-border-color rounded-lg p-6 flex items-center justify-between relative overflow-hidden">
-          <div className="flex flex-col gap-1">
+          {/* Background Glow */}
+          <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-green-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -top-10 -left-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div className="flex flex-col gap-1 relative z-10">
             <span className="text-yellow-500 font-bold text-xs tracking-widest uppercase mb-1 block">
               Saldo Pendiente
             </span>
@@ -311,9 +331,9 @@ export default function PlayerDetails() {
             </span>
           </div>
 
-          <div className="h-12 w-px bg-white/10 mx-6"></div>
+          <div className="h-12 w-px bg-white/10 mx-6 relative z-10"></div>
 
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 relative z-10">
             <span className="text-green-500 font-bold text-xs tracking-widest uppercase mb-1 block">
               Valor Aportado
             </span>

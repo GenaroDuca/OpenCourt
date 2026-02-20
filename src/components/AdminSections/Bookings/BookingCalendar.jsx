@@ -136,7 +136,7 @@ export default function BookingCalendar({
   };
 
   return (
-    <div className="h-full">
+    <div >
       <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-1 md:gap-4">
         {courts.map((court, index) => (
           <div
@@ -250,8 +250,8 @@ export default function BookingCalendar({
                       />
 
                       {/* Top Row: Time */}
-                      <div className="flex justify-between items-start relative z-10 gap-1">
-                        <div className="flex items-center gap-1">
+                      <div className="flex justify-center md:justify-between items-start relative z-10 gap-1">
+                        <div className="flex items-center gap-1 ">
                           <span
                             className={`w-full text-center md:w-auto ${
                               isFixed
@@ -270,7 +270,7 @@ export default function BookingCalendar({
                             })}
                           </span>
                           {isFixed && (
-                            <span className="text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm bg-blue-500/10 border-blue-500/30 text-blue-500">
+                            <span className="hidden md:block text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm bg-blue-500/10 border-blue-500/30 text-blue-500">
                               Fijo
                             </span>
                           )}
@@ -307,7 +307,7 @@ export default function BookingCalendar({
                             bookingPlayers.map((bp) => (
                               <span
                                 key={bp.id}
-                                className="font-bold text-[8px] md:text-xl text-white leading-tight drop-shadow-sm transition-colors block"
+                                className="font-bold text-[8px] text-center md:text-left md:text-xl text-white leading-tight drop-shadow-sm transition-colors block"
                               >
                                 {bp.players?.full_name || "Desconocido"}
                               </span>

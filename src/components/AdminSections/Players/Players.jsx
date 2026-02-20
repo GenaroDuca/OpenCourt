@@ -36,10 +36,11 @@ export default function Players() {
   const totalStudents = players.filter((p) => p.is_student).length;
   const totalNonStudents = players.filter((p) => !p.is_student).length;
 
-  // Helper to check if a booking player has actionable debt (past or today)
+  // Helper to check if a booking player has actionable debt (strictly past, excluding today)
   const hasActionableDebt = (player) => {
     if (!player.booking_players) return false;
     return player.booking_players.some((bp) => {
+      // Must be unpaid
       if (bp.is_paid) return false;
 
       const startTime = bp.bookings?.start_time;
@@ -59,18 +60,16 @@ export default function Players() {
         nowIdx.getDate(),
       );
 
-      // If future, not debt
-      if (bookingDay.getTime() > currentDay.getTime()) {
+      // If future OR TODAY, not debt yet (since it is paid 'on the day')
+      if (bookingDay.getTime() >= currentDay.getTime()) {
         return false;
       }
       return true;
     });
   };
 
-  // Calculate students who have pending payments (debt)
-  const studentsWithDebt = players.filter(
-    (p) => p.is_student && hasActionableDebt(p),
-  ).length;
+  // Calculate ALL players who have pending payments (debt)
+  const playersWithDebt = players.filter((p) => hasActionableDebt(p)).length;
 
   const filteredPlayers = players
     .filter((player) => {
@@ -83,7 +82,8 @@ export default function Players() {
         return matchesSearch && !player.is_student;
 
       if (filterType === "pending") {
-        const hasDebt = player.is_student && hasActionableDebt(player);
+        // Show ANY player with debt
+        const hasDebt = hasActionableDebt(player);
         return matchesSearch && hasDebt;
       }
 
@@ -118,6 +118,14 @@ export default function Players() {
       <PlayersHeader setIsAddingPlayer={setIsAddingPlayer} />
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mt-4 md:mt-4">
         <StatsCard
+          title="Total de Jugadores"
+          value={totalPlayers}
+          icon={<MdGroups2 size={24} />}
+          color="purple"
+          isActive={filterType === "all"}
+          onClick={() => setFilterType("all")}
+        />
+        <StatsCard
           title="Total de Alumnos"
           value={totalStudents}
           icon={<FaGraduationCap size={24} />}
@@ -137,17 +145,10 @@ export default function Players() {
             setFilterType(filterType === "non_student" ? "all" : "non_student")
           }
         />
+
         <StatsCard
-          title="Total de Jugadores"
-          value={totalPlayers}
-          icon={<MdGroups2 size={24} />}
-          color="purple"
-          isActive={filterType === "all"}
-          onClick={() => setFilterType("all")}
-        />
-        <StatsCard
-          title="Alumnos que deben"
-          value={studentsWithDebt}
+          title="Jugadores que deben"
+          value={playersWithDebt}
           icon={<TiWarning size={24} />}
           color="yellow"
           isActive={filterType === "pending"}

@@ -87,7 +87,7 @@ export default function PlayerCard({ data }) {
   return (
     <div
       onClick={() => navigate(`/admin-panel/players/${data.id}`)}
-      className="bg-background-card-color border border-border-color p-4  rounded-lg md:rounded-lg flex flex-col gap-2 md:gap-4 hover:border-primary/50 transition-all duration-300 group relative overflow-hidden cursor-pointer"
+      className="bg-background-card-color border border-border-color p-4  rounded-lg md:rounded-lg flex flex-col justify-between gap-2 md:gap-4 hover:border-primary/50 transition-all duration-300 group relative overflow-hidden cursor-pointer"
     >
       {/* Glow effect */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -z-10 transition-all duration-500 group-hover:bg-primary/10"></div>

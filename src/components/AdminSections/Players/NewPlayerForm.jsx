@@ -327,6 +327,7 @@ export default function NewPlayerForm({
           {/* Footer */}
           <div className="p-2 md:p-4 border-t border-border-color bg-white/5 flex gap-2 md:gap-4 ">
             <button
+              type="button"
               onClick={onClose}
               className="md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm  text-red-500 bg-red-500/10 border-red-500/20 hover:bg-red-500/15 w-full"
             >
