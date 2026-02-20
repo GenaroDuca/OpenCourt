@@ -61,7 +61,7 @@ export default function Login() {
                   placeholder="ejemplo@correo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full pl-11 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/30 transition-all duration-300 border border-border-color hover:border-primary/30"
                   required
                 />
               </div>
@@ -84,7 +84,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 rounded-lg bg-background-color border border-border-color text-white placeholder-text-color/30 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full pl-11 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/30 transition-all duration-300 border border-border-color hover:border-primary/30"
                   required
                 />
               </div>

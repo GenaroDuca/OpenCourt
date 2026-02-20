@@ -52,12 +52,12 @@ export default function Navbar() {
 
   const getLinkClass = (sectionName) => {
     const baseClass =
-      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm";
+      "md:h-[50px] flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm";
     const activeClass = "bg-primary/10 text-primary border-primary/20";
     const inactiveClass =
       "border-transparent text-text-color hover:bg-primary/10 hover:text-primary hover:border-primary/20";
     const logoutClass =
-      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 text-red-500 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/15 hover:text-red-500 hover:border-red-500/20";
+      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg md:border cursor-pointer transition-all duration-300 text-red-500 md:bg-red-500/10 text-red-500 md:border-red-500/20 md:hover:bg-red-500/15 md:hover:text-red-500 md:hover:border-red-500/20";
 
     if (sectionName === "logout") return logoutClass;
 

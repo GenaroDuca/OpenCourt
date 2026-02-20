@@ -52,7 +52,7 @@ export const StatsCard = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-background-card-color border border-border-color p-4 md:p-4 rounded-lg md:rounded-lg flex flex-col justify-between md:gap-4 gap-2 transition-all duration-300 group relative overflow-hidden ${
+      className={`bg-background-card-color border border-border-color p-2 md:p-4 rounded-2xl md:rounded-lg flex flex-col justify-center md:justify-between md:gap-4 gap-2 transition-all duration-300 group relative overflow-hidden ${
         isActive ? currentStyle.activeBorder : currentStyle.border
       } ${onClick ? "cursor-pointer" : ""}`}
     >
@@ -62,20 +62,20 @@ export const StatsCard = ({
         }`}
       ></div>
 
-      <div className="flex justify-between items-start">
+      <div className="flex justify-center md:justify-between items-start">
         <div
-          className={`p-3.5 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-300 ${currentStyle.icon}`}
+          className={`md:p-3.5 p-2 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-300 ${currentStyle.icon}`}
         >
           {icon}
         </div>
       </div>
 
-      <div className="flex flex-col gap-1 mt-2">
-        <span className="text-text-color/60 md:text-[12px] text-[10px] font-bold tracking-widest uppercase">
+      <div className="flex flex-col gap-1">
+        <span className="hidden md:block text-text-color/60 md:text-[12px] text-[8px] font-bold tracking-widest uppercase">
           {title}
         </span>
         <span
-          className={`text-3xl font-black text-white font-display tracking-tight transition-colors duration-300 ${
+          className={`text-center md:text-left text-sm md:text-2xl font-black text-white font-display tracking-tight transition-colors duration-300 ${
             isActive ? currentStyle.activeText : currentStyle.text
           }`}
         >

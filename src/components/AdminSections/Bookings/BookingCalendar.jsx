@@ -141,10 +141,10 @@ export default function BookingCalendar({
         {courts.map((court, index) => (
           <div
             key={court.id}
-            className="bg-background-card-color rounded-lg p-2 md:p-4 border border-white/5 flex flex-col gap-2 md:gap-4"
+            className="bg-background-card-color rounded-2xl md:rounded-lg p-2 md:p-4 border border-white/5 flex flex-col gap-2 md:gap-4"
           >
             {/* Column Header */}
-            <div className="flex justify-center items-center mb-1 md:mb-2 px-1">
+            <div className="flex justify-center items-center py-1">
               <div className="flex items-center gap-3">
                 <div>
                   <h3 className="font-bold text-white text-xs md:text-lg text-center truncate">
@@ -159,7 +159,7 @@ export default function BookingCalendar({
               {timeIndicatorPosition !== null && index === 0 && (
                 <div
                   ref={scrollRef}
-                  className="absolute left-[-10px] md:left-[-20px] z-[1] flex items-center pointer-events-none w-[382%] md:w-[220%] lg:w-[342%]"
+                  className="absolute left-[-10px] md:left-[-20px] z-[1] flex items-center pointer-events-none lg:w-[calc(300%+140px)] md:w-[calc(200%+16px)] w-[calc(300%+65px)]"
                   style={{ top: `${timeIndicatorPosition}px` }}
                 >
                   <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-lg shadow-md shrink-0 mr-1 z-50">
@@ -169,7 +169,7 @@ export default function BookingCalendar({
                       hour12: false,
                     })}
                   </div>
-                  <div className="h-[2px] left-[-4px] bg-red-500 w-full shadow-sm rounded-full opacity-80 relative">
+                  <div className="h-[2px] bg-red-500 w-full shadow-sm rounded-full opacity-80 relative">
                     <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full shadow-sm" />
                   </div>
                 </div>

@@ -226,7 +226,7 @@ export default function PlayerDetails() {
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full pb-10">
+    <div className="flex flex-col md:gap-4 gap-2 w-full pb-10">
       {/* Breadcrumb & Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-text-color/50 text-sm font-medium">
@@ -242,7 +242,7 @@ export default function PlayerDetails() {
 
         <button
           onClick={() => setIsEditing(true)}
-          className="flex items-center md:px-4 md:py-3 p-2 gap-2 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
+          className="md:h-[50px] flex items-center md:px-4 md:py-3 p-2 gap-2 rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
         >
           <TbEdit size={20} />
           <span className="hidden md:block">Editar</span>
@@ -257,9 +257,9 @@ export default function PlayerDetails() {
       />
 
       {/* Top Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-4">
         {/* Profile Card */}
-        <div className="lg:col-span-2 bg-background-card-color border border-border-color rounded-lg p-4 relative overflow-hidden group">
+        <div className="lg:col-span-2 bg-background-card-color border border-border-color md:rounded-lg rounded-2xl p-4 relative overflow-hidden group">
           {/* Background Glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-500"></div>
 
@@ -317,27 +317,27 @@ export default function PlayerDetails() {
         </div>
 
         {/* Payment Status Card */}
-        <div className="bg-background-card-color border border-border-color rounded-lg p-6 flex items-center justify-between relative overflow-hidden">
+        <div className="bg-background-card-color border border-border-color rounded-2xl md:rounded-lg  md:p-4 p-2 flex items-center justify-between relative overflow-hidden">
           {/* Background Glow */}
           <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-green-500/10 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -top-10 -left-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="flex flex-col gap-1 relative z-10">
-            <span className="text-yellow-500 font-bold text-xs tracking-widest uppercase mb-1 block">
+          <div className="flex flex-col  gap-2 relative z-10">
+            <span className="text-yellow-500 font-bold text-xs tracking-widest uppercase block text-center md:text-left">
               Saldo Pendiente
             </span>
-            <span className="text-2xl font-black text-white font-display tracking-tighter">
+            <span className="text-2xl font-black text-white font-display tracking-tighter text-center md:text-left">
               ${pendingDebt.toLocaleString()}
             </span>
           </div>
 
-          <div className="h-12 w-px bg-white/10 mx-6 relative z-10"></div>
+          <div className="h-12 w-px bg-white/10 mx-2 md:mx-6 relative z-10"></div>
 
           <div className="flex flex-col gap-1 relative z-10">
-            <span className="text-green-500 font-bold text-xs tracking-widest uppercase mb-1 block">
+            <span className="text-green-500 font-bold text-xs tracking-widest uppercase block text-center md:text-left">
               Valor Aportado
             </span>
-            <span className="text-2xl font-black text-white font-display tracking-tighter">
+            <span className="text-2xl font-black text-white font-display tracking-tighter text-center md:text-left">
               ${totalContributed.toLocaleString()}
             </span>
           </div>
@@ -346,12 +346,12 @@ export default function PlayerDetails() {
 
       {/* Navigation Tabs */}
       <div className="flex items-center justify-between">
-        <div className="flex gap-8 border-b border-white/10 w-full relative ">
-          {["bookings", "payments", "evaluations"].map((tab) => (
+        <div className="flex gap-2 md:gap-8 border-b border-white/10 w-full relative ">
+          {["bookings", "payments"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-4 text-sm font-bold tracking-wide transition-all relative cursor-pointer ${
+              className={`pb-4 w-full md:w-auto md:text-sm text-[12px] font-bold tracking-wide transition-all relative cursor-pointer ${
                 activeTab === tab
                   ? "text-primary"
                   : "text-text-color/60 hover:text-white"
@@ -369,7 +369,7 @@ export default function PlayerDetails() {
       </div>
 
       {/* Content Area - Table */}
-      <div className="bg-background-card-color border border-border-color rounded-lg overflow-hidden mt-2">
+      <div className="bg-background-card-color border border-border-color md:rounded-lg rounded-2xl overflow-hidden">
         {/* Table Header */}
         <div className="hidden md:grid md:grid-cols-5 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
           <div>Fecha</div>

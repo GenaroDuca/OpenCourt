@@ -75,7 +75,9 @@ export default function Players() {
     .filter((player) => {
       const matchesSearch =
         player.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (player.phone && player.phone.includes(searchTerm));
+        (player.phone && player.phone.includes(searchTerm)) ||
+        (player.category &&
+          player.category.toLowerCase().includes(searchTerm.toLowerCase()));
 
       if (filterType === "student") return matchesSearch && player.is_student;
       if (filterType === "non_student")
@@ -116,11 +118,11 @@ export default function Players() {
         onPlayerAdded={fetchPlayers}
       />
       <PlayersHeader setIsAddingPlayer={setIsAddingPlayer} />
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mt-2 md:mt-4">
+      <div className="grid grid-cols-4 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mt-2 md:mt-4">
         <StatsCard
           title="Total de Jugadores"
           value={totalPlayers}
-          icon={<MdGroups2 size={24} />}
+          icon={<MdGroups2 size={20} />}
           color="purple"
           isActive={filterType === "all"}
           onClick={() => setFilterType("all")}
@@ -128,7 +130,7 @@ export default function Players() {
         <StatsCard
           title="Total de Alumnos"
           value={totalStudents}
-          icon={<FaGraduationCap size={24} />}
+          icon={<FaGraduationCap size={20} />}
           color="green"
           isActive={filterType === "student"}
           onClick={() =>
@@ -138,7 +140,7 @@ export default function Players() {
         <StatsCard
           title="Total de No Alumnos"
           value={totalNonStudents}
-          icon={<BsPerson size={24} />}
+          icon={<BsPerson size={20} />}
           color="blue"
           isActive={filterType === "non_student"}
           onClick={() =>
@@ -149,7 +151,7 @@ export default function Players() {
         <StatsCard
           title="Jugadores que deben"
           value={playersWithDebt}
-          icon={<TiWarning size={24} />}
+          icon={<TiWarning size={20} />}
           color="yellow"
           isActive={filterType === "pending"}
           onClick={() =>

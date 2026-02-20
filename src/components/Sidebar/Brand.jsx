@@ -1,4 +1,4 @@
-import logo from "../../../public/OpenCourt.png";
+import logo from "/OpenCourt.png";
 
 export default function Brand() {
   return (
