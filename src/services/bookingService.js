@@ -91,14 +91,18 @@ export const createBooking = async (bookingData) => {
       is_paid: p.is_paid || false,
     }));
 
-    const { data: insertedPlayers, error: playerError } = await supabase
-      .from("booking_players")
-      .insert(bookingPlayersData)
-      .select();
+    let insertedPlayers = [];
+    if (bookingPlayersData.length > 0) {
+      const { data: inserted, error: playerError } = await supabase
+        .from("booking_players")
+        .insert(bookingPlayersData)
+        .select();
 
-    if (playerError) {
-      await supabase.from("bookings").delete().eq("id", booking.id);
-      throw playerError;
+      if (playerError) {
+        await supabase.from("bookings").delete().eq("id", booking.id);
+        throw playerError;
+      }
+      insertedPlayers = inserted;
     }
 
     // 3. Register Payments
@@ -155,12 +159,6 @@ export const createBooking = async (bookingData) => {
       currentEnd.setDate(currentEnd.getDate() + i * 7);
 
       try {
-        // Only mark payment for the first one if it's paid?
-        // Or all of them? Logic: usually recurring bookings are paid per session.
-        // If the user marks as "Paid" in the modal, they likely mean the FIRST one.
-        // But for simplicity, let's keep the payment status for all for now,
-        // or clear it for subsequent weeks?
-        // Let's clear payment for subsequent weeks to be creating unpaid reservations.
         const weekPlayers =
           i === 0
             ? players
@@ -182,9 +180,6 @@ export const createBooking = async (bookingData) => {
       } catch (err) {
         console.error(`Error replicating booking for week ${i}:`, err);
         errors.push(err.message);
-        // Continue loop? Or stop?
-        // Usually better to stop if we want atomic-like behavior, but here we can't easily rollback via REST.
-        // We will continue and report errors.
       }
     }
 

@@ -5,6 +5,8 @@ import {
   BsChevronLeft,
   BsChevronRight,
   BsPlus,
+  BsCurrencyDollar,
+  BsWallet2,
 } from "react-icons/bs";
 import BookingCalendar from "./BookingCalendar";
 import NewBookingModal from "./NewBookingModal";
@@ -13,6 +15,7 @@ import {
   getCourts,
   getPriceConfig,
 } from "../../../services/bookingService";
+import { getBlockoutsByDate } from "../../../services/blockoutService";
 import { getPlayers } from "../../../services/playerService";
 
 export default function Bookings() {
@@ -94,14 +97,28 @@ export default function Bookings() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [bookingsData, courtsData, priceData, playersData] =
+      const [bookingsData, blockoutsData, courtsData, priceData, playersData] =
         await Promise.all([
           getBookingsByDate(selectedDate),
+          getBlockoutsByDate(selectedDate),
           getCourts(),
           getPriceConfig(),
           getPlayers(),
         ]);
-      setBookings(bookingsData);
+
+      // Normalize blockouts to look like bookings for the calendar
+      const formattedBlockouts = blockoutsData.map((b) => ({
+        id: b.id,
+        court_id: b.court_id,
+        start_time: b.start_time,
+        end_time: b.end_time,
+        details: b.reason,
+        is_fixed: b.is_recurring,
+        booking_players: [], // This makes isBlock = true in BookingCalendar
+        is_blockout: true, // Marker to identify it's from court_blockouts table
+      }));
+
+      setBookings([...bookingsData, ...formattedBlockouts]);
       setCourts(courtsData);
       setPriceConfig(priceData);
       setPlayers(playersData);
@@ -153,6 +170,8 @@ export default function Bookings() {
   };
 
   const handleBookingClick = (booking) => {
+    if (booking.is_blockout) return; // Prevent editing blockouts
+
     setSearchParams(
       (prev) => {
         const newParams = new URLSearchParams(prev);
@@ -178,11 +197,27 @@ export default function Bookings() {
     );
   };
 
+  const { totalExpected, totalCollected } = bookings.reduce(
+    (acc, booking) => {
+      // Skip stats for blockouts
+      if (booking.is_blockout) return acc;
+
+      const players = booking.booking_players || [];
+      players.forEach((p) => {
+        const price = Number(p.individual_price) || 0;
+        acc.totalExpected += price;
+        if (p.is_paid) acc.totalCollected += price;
+      });
+      return acc;
+    },
+    { totalExpected: 0, totalCollected: 0 },
+  );
+
   return (
     <div className="flex flex-col gap-2 md:gap-4 relative">
       {/* Header */}
       <div className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 bg-background-color/80 backdrop-blur-sm w-full py-2 border-b border-white/5">
-        <div className="flex items-center justify-between w-full md:w-auto gap-4">
+        <div className="flex items-center justify-between w-full md:w-auto gap-2">
           <div className="flex items-center gap-2 bg-background-color p-1 rounded-lg border border-border-color">
             <button
               onClick={handlePrevDay}
@@ -220,7 +255,43 @@ export default function Bookings() {
           </button>
         </div>
 
-        <div className="text-sm md:text-xl font-bold text-white capitalize">
+        <div className="flex-col-reverse md:flex-row hidden md:flex items-center gap-2 md:gap-6">
+          <div className="text-sm md:text-lg font-bold text-white capitalize">
+            {formatDate(selectedDate)}
+          </div>
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-2 bg-background-color/50 p-2 min-w-[130px] rounded-lg border border-white/5">
+              <div className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg">
+                <BsWallet2 size={16} />
+              </div>
+              <div className="flex flex-col leading-none gap-0.5">
+                <span className="text-[10px] text-text-color/60 font-medium uppercase tracking-wider">
+                  Total
+                </span>
+                <span className="text-sm font-bold text-white">
+                  ${totalExpected.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 bg-background-color/50 min-w-[130px] p-2 rounded-lg border border-white/5">
+              <div className="p-1.5 bg-green-500/10 text-green-500 rounded-lg">
+                <BsCurrencyDollar size={16} />
+              </div>
+              <div className="flex flex-col leading-none gap-0.5">
+                <span className="text-[10px] text-text-color/60 font-medium uppercase tracking-wider">
+                  Real
+                </span>
+                <span className="text-sm font-bold text-white">
+                  ${totalCollected.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Date - Shows only on mobile in header */}
+        <div className="md:hidden text-xs font-bold text-white capitalize">
           {formatDate(selectedDate)}
         </div>
 
@@ -235,6 +306,37 @@ export default function Bookings() {
           <BsPlus size={20} />
           <span className="hidden md:block text-sm">Nueva Reserva</span>
         </button>
+      </div>
+
+      {/* Mobile Stats Cards - Only visible on mobile, outside sticky header */}
+      <div className="md:hidden grid grid-cols-2 gap-2 w-full">
+        <div className="flex items-center gap-2 bg-background-color/50 px-3 py-2 rounded-lg border border-white/5">
+          <div className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg">
+            <BsWallet2 size={16} />
+          </div>
+          <div className="flex flex-col leading-none gap-0.5">
+            <span className="text-[10px] text-text-color/60 font-medium uppercase tracking-wider">
+              Total
+            </span>
+            <span className="text-sm font-bold text-white">
+              ${totalExpected.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-background-color/50 px-3 py-2 rounded-lg border border-white/5">
+          <div className="p-1.5 bg-green-500/10 text-green-500 rounded-lg">
+            <BsCurrencyDollar size={16} />
+          </div>
+          <div className="flex flex-col leading-none gap-0.5">
+            <span className="text-[10px] text-text-color/60 font-medium uppercase tracking-wider">
+              Real
+            </span>
+            <span className="text-sm font-bold text-white">
+              ${totalCollected.toLocaleString()}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Calendar Grid */}

@@ -2,7 +2,7 @@ import { BsPlus } from "react-icons/bs";
 export default function PlayersHeader({ setIsAddingPlayer }) {
   return (
     <>
-      <div className="flex gap-4 justify-between items-center py-2">
+      <div className="sticky top-0 z-20 flex md:flex-row justify-between items-center gap-2 md:gap-4 bg-background-color/80 backdrop-blur-sm w-full py-2 border-b border-white/5">
         <div className="flex flex-col gap-0">
           <h1 className="text-xl font-bold text-white md:text-3xl">
             Jugadores

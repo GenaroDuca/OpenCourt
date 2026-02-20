@@ -116,7 +116,7 @@ export default function Players() {
         onPlayerAdded={fetchPlayers}
       />
       <PlayersHeader setIsAddingPlayer={setIsAddingPlayer} />
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mt-4 md:mt-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mt-2 md:mt-4">
         <StatsCard
           title="Total de Jugadores"
           value={totalPlayers}
