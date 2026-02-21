@@ -76,19 +76,19 @@ export default function Navbar() {
     <nav className="h-full flex md:flex-col justify-between items-center">
       <ul className="flex md:flex-col gap-2 md:gap-4 md:mt-4 md:w-full w-auto">
         <li>
-          <Link to="/admin-panel/bookings" className={getLinkClass("bookings")}>
+          <Link to="/admin/bookings" className={getLinkClass("bookings")}>
             <IoIosTennisball size={20} className="hidden md:block" />
             <span className="cursor-pointer">Reservas</span>
           </Link>
         </li>
         <li>
-          <Link to="/admin-panel/players" className={getLinkClass("players")}>
+          <Link to="/admin/players" className={getLinkClass("players")}>
             <BsPeopleFill size={20} className="hidden md:block" />
             <span className="cursor-pointer">Jugadores</span>
           </Link>
         </li>
         <li>
-          <Link to="/admin-panel/payments" className={getLinkClass("payments")}>
+          <Link to="/admin/payments" className={getLinkClass("payments")}>
             <FaMoneyBills size={20} className="hidden md:block" />
             <span className="cursor-pointer">Pagos</span>
           </Link>

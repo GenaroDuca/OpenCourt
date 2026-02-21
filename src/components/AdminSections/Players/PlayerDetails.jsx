@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { BsTelephone, BsChevronRight } from "react-icons/bs";
+import {
+  BsTelephone,
+  BsChevronRight,
+  BsArrowUp,
+  BsArrowDown,
+} from "react-icons/bs";
 import { TbEdit } from "react-icons/tb";
 
 import { supabase } from "../../../../supabaseClient";
@@ -52,6 +57,18 @@ export default function PlayerDetails() {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [sortConfig, setSortConfig] = useState({
+    key: "rawDate",
+    direction: "desc",
+  });
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
 
   useEffect(() => {
     const fetchPlayer = async () => {
@@ -117,19 +134,9 @@ export default function PlayerDetails() {
       if (!startTime) return acc;
 
       const bookingTime = new Date(startTime);
-      const nowIdx = new Date();
-      const bookingDay = new Date(
-        bookingTime.getFullYear(),
-        bookingTime.getMonth(),
-        bookingTime.getDate(),
-      );
-      const currentDay = new Date(
-        nowIdx.getFullYear(),
-        nowIdx.getMonth(),
-        nowIdx.getDate(),
-      );
+      const now = new Date();
 
-      if (bookingDay.getTime() > currentDay.getTime()) {
+      if (bookingTime > now) {
         return acc; // Future booking, not debt yet
       }
 
@@ -148,32 +155,22 @@ export default function PlayerDetails() {
     day: "numeric",
   });
 
-  // Format bookings for the table
+  // Format and Filter bookings for the table
   const bookings =
     player.booking_players
       ?.map((bp) => {
         const booking = bp.bookings;
         const courtName = booking?.courts?.name || "Cancha desconocida";
         // Calculate duration
-        const start = new Date(booking.start_time); // Assuming ISO string
+        const start = new Date(booking.start_time); 
         const end = new Date(booking.end_time);
         const duration = (end - start) / (1000 * 60); // minutes
 
         const payment = bp.payment;
 
         // Check status logic
-        const nowIdx = new Date();
-        const bookingDay = new Date(
-          start.getFullYear(),
-          start.getMonth(),
-          start.getDate(),
-        );
-        const currentDay = new Date(
-          nowIdx.getFullYear(),
-          nowIdx.getMonth(),
-          nowIdx.getDate(),
-        );
-        const isFuture = bookingDay.getTime() > currentDay.getTime();
+        const now = new Date();
+        const isFuture = start > now;
 
         let statusRaw = "Pendiente";
         if (bp.is_paid) statusRaw = "Pagado";
@@ -211,7 +208,28 @@ export default function PlayerDetails() {
           bookingId: booking.id,
         };
       })
-      .sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate)) || [];
+      .filter((b) => {
+        const now = new Date();
+        const isFuture = new Date(b.rawDate) > now;
+        if (activeTab === "future_bookings") return isFuture;
+        if (activeTab === "bookings") return !isFuture;
+        return true;
+      })
+      .sort((a, b) => {
+        const { key, direction } = sortConfig;
+        let valA = a[key];
+        let valB = b[key];
+
+        // Handle numeric amount comparison
+        if (key === "amount") {
+          valA = Number(valA.replace("$", ""));
+          valB = Number(valB.replace("$", ""));
+        }
+
+        if (valA < valB) return direction === "asc" ? -1 : 1;
+        if (valA > valB) return direction === "asc" ? 1 : -1;
+        return 0;
+      }) || [];
 
   const handleBookingClick = (booking) => {
     const dateObj = new Date(booking.rawDate);
@@ -220,9 +238,7 @@ export default function PlayerDetails() {
     const day = String(dateObj.getDate()).padStart(2, "0");
     const dateStr = `${year}-${month}-${day}`;
 
-    navigate(
-      `/admin-panel/bookings?date=${dateStr}&bookingId=${booking.bookingId}`,
-    );
+    navigate(`/admin/bookings?date=${dateStr}&bookingId=${booking.bookingId}`);
   };
 
   return (
@@ -231,7 +247,7 @@ export default function PlayerDetails() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-text-color/50 text-sm font-medium">
           <Link
-            to="/admin-panel/players"
+            to="/admin/players"
             className="hover:text-primary transition-colors"
           >
             Jugadores
@@ -347,7 +363,7 @@ export default function PlayerDetails() {
       {/* Navigation Tabs */}
       <div className="flex items-center justify-between">
         <div className="flex gap-2 md:gap-8 border-b border-white/10 w-full relative ">
-          {["bookings", "payments"].map((tab) => (
+          {["bookings", "future_bookings", "payments"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -355,10 +371,11 @@ export default function PlayerDetails() {
                 activeTab === tab
                   ? "text-primary"
                   : "text-text-color/60 hover:text-white"
-              }`}
+              } ${tab === "payments" ? "hidden" : ""}`}
             >
-              {tab === "bookings" && "Historial de Reservas"}
-              {tab === "payments" && "Pagos Recientes"}
+              {tab === "bookings" && "Reservas Pasadas"}
+              {tab === "future_bookings" && "Reservas Futuras"}
+              {/* {tab === "payments" && "Pagos Recientes"} */}
 
               {activeTab === tab && (
                 <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(92,205,91,0.5)]"></div>
@@ -372,11 +389,66 @@ export default function PlayerDetails() {
       <div className="bg-background-card-color border border-border-color md:rounded-lg rounded-2xl overflow-hidden">
         {/* Table Header */}
         <div className="hidden md:grid md:grid-cols-5 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
-          <div>Fecha</div>
-          <div>Cancha</div>
-          <div>Importe</div>
-          <div>Método Pago</div>
-          <div className="text-right md:text-left">Estado</div>
+          <div
+            className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
+            onClick={() => handleSort("rawDate")}
+          >
+            Fecha
+            {sortConfig.key === "rawDate" &&
+              (sortConfig.direction === "asc" ? (
+                <BsArrowUp />
+              ) : (
+                <BsArrowDown />
+              ))}
+          </div>
+          <div
+            className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
+            onClick={() => handleSort("courtDetail")}
+          >
+            Cancha
+            {sortConfig.key === "courtDetail" &&
+              (sortConfig.direction === "asc" ? (
+                <BsArrowUp />
+              ) : (
+                <BsArrowDown />
+              ))}
+          </div>
+          <div
+            className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
+            onClick={() => handleSort("amount")}
+          >
+            Importe
+            {sortConfig.key === "amount" &&
+              (sortConfig.direction === "asc" ? (
+                <BsArrowUp />
+              ) : (
+                <BsArrowDown />
+              ))}
+          </div>
+          <div
+            className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
+            onClick={() => handleSort("paymentMethod")}
+          >
+            Método Pago
+            {sortConfig.key === "paymentMethod" &&
+              (sortConfig.direction === "asc" ? (
+                <BsArrowUp />
+              ) : (
+                <BsArrowDown />
+              ))}
+          </div>
+          <div
+            className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors text-right md:text-left"
+            onClick={() => handleSort("status")}
+          >
+            Estado
+            {sortConfig.key === "status" &&
+              (sortConfig.direction === "asc" ? (
+                <BsArrowUp />
+              ) : (
+                <BsArrowDown />
+              ))}
+          </div>
         </div>
 
         {/* Table Body */}
@@ -386,7 +458,7 @@ export default function PlayerDetails() {
               <div
                 key={booking.id}
                 onClick={() => handleBookingClick(booking)}
-                className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 rounded-b-lg border-border-color hover:bg-white/5 transition-colors items-center cursor-pointer group"
+                className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 hover:bg-white/5 transition-colors items-center cursor-pointer group border-b border-border-color"
               >
                 {/* Date */}
                 <div className="flex flex-col col-span-2 md:col-span-1 order-1 md:order-1">

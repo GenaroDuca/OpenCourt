@@ -25,7 +25,7 @@ export default function Login() {
       toast.error("Credenciales incorrectas");
     } else {
       toast.success("¡Inicio de sesión exitoso!");
-      navigate("/admin-panel");
+      navigate("/admin");
     }
     setLoading(false);
   };
