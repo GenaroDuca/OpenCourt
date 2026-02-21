@@ -47,24 +47,10 @@ export default function Players() {
       if (!startTime) return false;
 
       const bookingTime = new Date(startTime);
-      const nowIdx = new Date();
-      // Reset times to compare strictly dates
-      const bookingDay = new Date(
-        bookingTime.getFullYear(),
-        bookingTime.getMonth(),
-        bookingTime.getDate(),
-      );
-      const currentDay = new Date(
-        nowIdx.getFullYear(),
-        nowIdx.getMonth(),
-        nowIdx.getDate(),
-      );
+      const now = new Date();
 
-      // If future OR TODAY, not debt yet (since it is paid 'on the day')
-      if (bookingDay.getTime() >= currentDay.getTime()) {
-        return false;
-      }
-      return true;
+      // If turn has started or passed
+      return bookingTime <= now;
     });
   };
 
@@ -87,6 +73,14 @@ export default function Players() {
         // Show ANY player with debt
         const hasDebt = hasActionableDebt(player);
         return matchesSearch && hasDebt;
+      }
+
+      if (filterType === "reserva") {
+        const hasFuture = player.booking_players?.some((bp) => {
+          const startTime = bp.bookings?.start_time;
+          return startTime && new Date(startTime) > new Date();
+        });
+        return matchesSearch && hasFuture;
       }
 
       return matchesSearch;

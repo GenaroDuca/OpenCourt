@@ -800,7 +800,7 @@ export default function NewBookingModal({
                       </div>
                       <div>
                         <Link
-                          to={`/admin-panel/players/${player.id}`}
+                          to={`/admin/players/${player.id}`}
                           className="text-[12px] font-bold text-text-color hover:text-primary hover:underline transition-colors"
                         >
                           {player.full_name}

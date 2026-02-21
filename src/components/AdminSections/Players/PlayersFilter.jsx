@@ -7,7 +7,7 @@ export default function PlayersFilter({
   setFilterType,
 }) {
   return (
-    <div className="flex flex-row  md:gap-4 gap-2 justify-between items-center mt-2 md:mt-4 bg-background-card-color p-2 md:p-4 rounded-2xl md:rounded-lg border border-border-color">
+    <div className="flex flex-col md:flex-row   md:gap-4 gap-2 justify-between items-center mt-2 md:mt-4 bg-background-card-color p-2 md:p-4 rounded-2xl md:rounded-lg border border-border-color">
       {/* Search Input */}
       <div className="relative w-full flex-1">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-color/50">
@@ -35,6 +35,18 @@ export default function PlayersFilter({
           }`}
         >
           Valor
+        </button>
+        <button
+          onClick={() =>
+            setFilterType(filterType === "reserva" ? "all" : "reserva")
+          }
+          className={`rounded-2xl md:rounded-lg px-4 py-1 text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
+            filterType === "reserva"
+              ? "bg-primary/10 text-primary border border-primary/20"
+              : "text-text-color/60 hover:text-text-color/80"
+          }`}
+        >
+          Reserva
         </button>
       </div>
     </div>

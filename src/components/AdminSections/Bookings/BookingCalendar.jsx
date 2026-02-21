@@ -16,6 +16,7 @@ export default function BookingCalendar({
   onSlotClick,
   onBookingClick,
   highlightedBookingId,
+  readOnly = false,
 }) {
   const [isMobile, setIsMobile] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(new Date());
@@ -159,7 +160,7 @@ export default function BookingCalendar({
               {timeIndicatorPosition !== null && index === 0 && (
                 <div
                   ref={scrollRef}
-                  className="absolute left-[-10px] md:left-[-20px] z-[1] flex items-center pointer-events-none lg:w-[calc(300%+140px)] md:w-[calc(200%+16px)] w-[calc(300%+65px)]"
+                  className="absolute left-[-10px] md:left-[-20px] z-1 flex items-center pointer-events-none lg:w-[calc(300%+140px)] md:w-[calc(200%+16px)] w-[calc(300%+65px)]"
                   style={{ top: `${timeIndicatorPosition}px` }}
                 >
                   <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-lg shadow-md shrink-0 mr-1 z-50">
@@ -233,6 +234,7 @@ export default function BookingCalendar({
                       key={slot}
                       id={`booking-${booking.id}`}
                       onClick={(e) => {
+                        if (readOnly) return;
                         e.stopPropagation();
                         onBookingClick(booking);
                       }}
@@ -243,7 +245,7 @@ export default function BookingCalendar({
                           : isFixed
                             ? "from-blue-500/20 to-blue-500/5 border-blue-500/20 hover:shadow-blue-500/10 hover:border-blue-500/40"
                             : "from-primary/20 to-primary/5 border-primary/20 hover:shadow-primary/10 hover:border-primary/40"
-                      } border rounded-2xl md:rounded-lg p-2 md:p-5 flex flex-col gap-1 md:gap-2 relative group overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer`}
+                      } border rounded-2xl md:rounded-lg p-2 md:p-5 flex flex-col gap-1 md:gap-2 relative group overflow-hidden transition-all duration-300 ${!readOnly ? "hover:shadow-lg cursor-pointer" : "cursor-default"}`}
                     >
                       {/* Hover Glow Effect */}
                       <div
@@ -291,8 +293,8 @@ export default function BookingCalendar({
                           )}
                         </div>
 
-                        {/* Paid Icon - Only for bookings */}
-                        {!isBlock && isPaid ? (
+                        {/* Paid Icon - Only for bookings, and NOT in readOnly */}
+                        {!isBlock && !readOnly && isPaid ? (
                           <div className="hidden w-3.5 h-3.5 md:w-6 md:h-6 md:flex rounded-full bg-primary/20 border border-primary/30 items-center justify-center text-primary shadow-sm shrink-0">
                             <svg
                               width="12"
@@ -307,7 +309,7 @@ export default function BookingCalendar({
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                           </div>
-                        ) : !isBlock && showPendingWarning ? (
+                        ) : !isBlock && !readOnly && showPendingWarning ? (
                           <div className="hidden w-3.5 h-3.5 md:w-6 md:h-6 md:flex rounded-full bg-yellow-500/20 border border-yellow-500/30 items-center justify-center text-yellow-500 shadow-sm shrink-0 animate-pulse">
                             <span className="text-[10px] font-bold">!</span>
                           </div>
@@ -319,12 +321,19 @@ export default function BookingCalendar({
                         {isBlock ? (
                           <div className="flex items-center justify-center h-full">
                             <span className="font-bold text-[10px] md:text-sm text-zinc-600 text-center italic leading-tight uppercase tracking-wider">
-                              {booking.details || "DESHABILITADO"}
+                              {readOnly &&
+                              booking.details?.toLowerCase().includes("clase")
+                                ? "CLASES"
+                                : booking.details || "DESHABILITADO"}
                             </span>
                           </div>
                         ) : (
                           <div className="flex flex-col gap-0.5 overflow-hidden justify-end h-full">
-                            {bookingPlayers.length > 0 ? (
+                            {readOnly ? (
+                              <span className="font-bold text-[10px] text-center md:text-left md:text-xl text-white/50 leading-tight drop-shadow-sm transition-colors block uppercase tracking-widest">
+                                Ocupado
+                              </span>
+                            ) : bookingPlayers.length > 0 ? (
                               bookingPlayers.map((bp) => (
                                 <span
                                   key={bp.id}
@@ -345,42 +354,50 @@ export default function BookingCalendar({
                       {/* Bottom Layout: Status (Only for regular bookings) */}
                       {!isBlock && (
                         <div className="flex items-end justify-center md:justify-between gap-1 relative z-10">
-                          <div
-                            className={`hidden md:flex items-center gap-1 md:gap-2 ${
-                              isFixed ? "text-blue-500/80" : "text-primary/80"
-                            } text-[8px] md:text-sm font-medium `}
-                          >
-                            <BsPerson
-                              size={14}
-                              className="md:w-[20px] md:h-[20px]"
-                            />
-                            <span className="text-[12px] md:text-sm">
-                              {count}{" "}
-                              <span className="hidden md:inline">
-                                Jugadores
-                              </span>
-                            </span>
-                          </div>
-
-                          <div className="flex gap-0 md:gap-1 flex-col items-center md:items-end">
-                            <span className="text-[12px] md:text-base font-bold text-white drop-shadow-md pb-0.5 ">
-                              ${totalValue.toLocaleString()}
-                            </span>
-                            <span
-                              className={`text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
-                                isPaid
-                                  ? "bg-green-500/10 border-green-500/30 text-green-500"
-                                  : showPendingWarning
-                                    ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-500"
-                                    : "bg-white/10 border-white/20 text-white/50"
-                              }`}
+                          {!readOnly && (
+                            <div
+                              className={`hidden md:flex items-center gap-1 md:gap-2 ${
+                                isFixed ? "text-blue-500/80" : "text-primary/80"
+                              } text-[8px] md:text-sm font-medium `}
                             >
-                              {isPaid
-                                ? "Pagado"
-                                : showPendingWarning
-                                  ? "Pendiente"
-                                  : "Reservado"}
-                            </span>
+                              <BsPerson
+                                size={14}
+                                className="md:w-[20px] md:h-[20px]"
+                              />
+                              <span className="text-[12px] md:text-sm">
+                                {count}{" "}
+                                <span className="hidden md:inline">
+                                  Jugadores
+                                </span>
+                              </span>
+                            </div>
+                          )}
+
+                          <div
+                            className={`flex gap-0 md:gap-1 flex-col items-center md:items-end ${readOnly ? "w-full" : ""}`}
+                          >
+                            {!readOnly && (
+                              <span className="text-[12px] md:text-base font-bold text-white drop-shadow-md pb-0.5 ">
+                                ${totalValue.toLocaleString()}
+                              </span>
+                            )}
+                            {!readOnly && (
+                              <span
+                                className={`text-center px-1 py-0.5 md:px-2 md:py-1 border text-[8px] md:text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm backdrop-blur-sm ${
+                                  isPaid
+                                    ? "bg-green-500/10 border-green-500/30 text-green-500"
+                                    : showPendingWarning
+                                      ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-500"
+                                      : "bg-white/10 border-white/20 text-white/50"
+                                }`}
+                              >
+                                {isPaid
+                                  ? "Pagado"
+                                  : showPendingWarning
+                                    ? "Pendiente"
+                                    : "Reservado"}
+                              </span>
+                            )}
                           </div>
                         </div>
                       )}
@@ -412,20 +429,33 @@ export default function BookingCalendar({
                 return (
                   <div
                     key={slot}
-                    onClick={() => onSlotClick(court.id, slot)}
-                    className="border border-dashed border-white/10 rounded-2xl md:rounded-lg p-2 md:p-4 flex md:flex-row items-center gap-1 md:gap-0 md:justify-between justify-center md:h-[80px] h-[40px] hover:border-white/20 hover:bg-white/2 transition-all cursor-pointer group"
+                    onClick={() => !readOnly && onSlotClick(court.id, slot)}
+                    className={`border border-dashed border-white/10 rounded-2xl md:rounded-lg p-2 md:p-4 flex md:flex-row items-center gap-1 md:gap-0 md:justify-between justify-center md:h-[80px] h-[40px] transition-all ${
+                      !readOnly
+                        ? "hover:border-white/20 hover:bg-white/2 cursor-pointer group"
+                        : "cursor-default"
+                    }`}
                   >
-                    <span className="text-white/30 text-[10px] md:text-sm font-bold group-hover:text-white/50 transition-colors bg-white/5 px-1.5 py-1 md:px-3 md:py-1.5 rounded-lg">
+                    <span
+                      className={`text-white/30 text-[10px] md:text-sm font-bold ${!readOnly ? "group-hover:text-white/50" : ""} transition-colors bg-white/5 px-1.5 py-1 md:px-3 md:py-1.5 rounded-lg`}
+                    >
                       {slot}
                     </span>
-                    <div className="flex items-center gap-2 md:gap-3 text-white/20 group-hover:text-primary transition-colors pr-0 md:pr-2">
-                      <span className="text-xs font-bold uppercase tracking-wider hidden md:group-hover:block transition-all">
-                        Reservar
-                      </span>
-                      <div className="w-5 h-5 md:w-8 md:h-8 border border-current flex items-center justify-center bg-white/5 group-hover:bg-primary/10 group-hover:border-primary/50 rounded-lg">
-                        <BsPlus size={14} className="md:w-5 md:h-5" />
+                    {!readOnly && (
+                      <div className="flex items-center gap-2 md:gap-3 text-white/20 group-hover:text-primary transition-colors pr-0 md:pr-2">
+                        <span className="text-xs font-bold uppercase tracking-wider hidden md:group-hover:block transition-all">
+                          Reservar
+                        </span>
+                        <div className="w-5 h-5 md:w-8 md:h-8 border border-current flex items-center justify-center bg-white/5 group-hover:bg-primary/10 group-hover:border-primary/50 rounded-lg">
+                          <BsPlus size={14} className="md:w-5 md:h-5" />
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    {/* {readOnly && (
+                      <span className="text-[10px] font-bold text-primary/40 uppercase tracking-widest px-2">
+                        Consultar
+                      </span>
+                    )} */}
                   </div>
                 );
               })}

@@ -67,26 +67,19 @@ export default function PlayerCard({ data }) {
     const bookingTime = new Date(startTime);
     const now = new Date();
 
-    const bookingDay = new Date(
-      bookingTime.getFullYear(),
-      bookingTime.getMonth(),
-      bookingTime.getDate(),
-    );
-    const currentDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
-
     // If booking is in the future, it's not pending yet (for display purposes)
-    const isFutureDay = bookingDay.getTime() > currentDay.getTime();
+    return bookingTime <= now;
+  });
 
-    return !isFutureDay;
+  const hasFutureBooking = bookings.some((bp) => {
+    const startTime = bp.bookings?.start_time;
+    if (!startTime) return false;
+    return new Date(startTime) > new Date();
   });
 
   return (
     <div
-      onClick={() => navigate(`/admin-panel/players/${data.id}`)}
+      onClick={() => navigate(`/admin/players/${data.id}`)}
       className="bg-background-card-color border border-border-color p-2 md:p-4  rounded-2xl md:rounded-lg flex flex-col justify-between gap-2 md:gap-4 hover:border-primary/50 transition-all duration-300 group relative overflow-hidden cursor-pointer"
     >
       {/* Glow effect */}
@@ -114,6 +107,11 @@ export default function PlayerCard({ data }) {
             <div className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-2 text-primary text-xs font-bold">
               <BsCheckCircleFill size={10} />
               <span>AL DÍA</span>
+            </div>
+          )}
+          {hasFutureBooking && (
+            <div className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-white/10 text-white/70 border-white/10 mt-1">
+              <span>RESERVA</span>
             </div>
           )}
         </div>
