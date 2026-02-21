@@ -133,14 +133,13 @@ export default function Home() {
     <div className="min-h-screen bg-background-color text-text-color p-2 md:p-4">
       <div className="flex flex-col gap-2 md:gap-4 relative">
         {/* Header - Identical to Admin Bookings Style */}
-        <div className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 bg-background-color/80 backdrop-blur-sm w-full py-2 border-b border-white/5">
-          <div className="flex items-center justify-between w-full md:w-auto gap-4">
-            <div className="hidden md:flex items-center gap-2">
-              <h1 className="text-xl font-black text-white tracking-tighter">
-                Ferro<span className="text-blue-400"> Turnos</span>
-              </h1>
-            </div>
-
+        <div className="z-20 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 bg-background-color/80 backdrop-blur-sm w-full pb-2 border-b border-white/5">
+          <div className="flex items-center">
+            <h1 className="text-xl font-black text-white tracking-tighter">
+              Ferro<span className="text-blue-400"> Turnos</span>
+            </h1>
+          </div>
+          <div className="flex items-center justify-between gap-2 md:gap-4 :w-auto">
             <div className="flex items-center gap-2 bg-background-color p-1 rounded-2xl md:rounded-lg border border-border-color">
               <button
                 onClick={handlePrevDay}
