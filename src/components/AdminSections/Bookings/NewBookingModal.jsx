@@ -596,20 +596,20 @@ export default function NewBookingModal({
             </div>
             <div className="grid grid-cols-1 w-full gap-3">
               <div className="flex gap-2 md:gap-4">
-              <button
-                type="button"
-                onClick={() => confirmPayment("Efectivo")}
-                className="w-full h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 justify-center"
-              >
-                Efectivo
-              </button>
-              <button
-                type="button"
-                onClick={() => confirmPayment("Transferencia")}
-                className="w-full h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 justify-center  "
-              >
-                Transferencia
-              </button>
+                <button
+                  type="button"
+                  onClick={() => confirmPayment("Efectivo")}
+                  className="w-full h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-purple-500/10 text-purple-500 border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/30 justify-center"
+                >
+                  Efectivo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => confirmPayment("Transferencia")}
+                  className="w-full h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 justify-center  "
+                >
+                  Transferencia
+                </button>
               </div>
               <button
                 type="button"
@@ -929,7 +929,9 @@ export default function NewBookingModal({
                             onClick={() => handleTogglePaid(player)}
                             className={`text-[8px] md:text-md font-bold px-2 py-1 rounded-2xl md:rounded-lg border transition-colors cursor-pointer ${
                               player.is_paid
-                                ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 font-semibold"
+                                ? player.payment_method === "Transferencia"
+                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20"
+                                  : "bg-purple-500/10 text-purple-500 border-purple-500/20 hover:bg-purple-500/20"
                                 : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
                             }`}
                           >

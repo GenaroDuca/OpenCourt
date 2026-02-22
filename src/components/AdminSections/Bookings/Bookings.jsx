@@ -218,7 +218,7 @@ export default function Bookings() {
       {/* Header */}
       <div className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 bg-background-color/80 backdrop-blur-sm w-full py-2 border-b border-white/5">
         <div className="flex items-center justify-between w-full md:w-auto gap-2">
-          <div className="flex items-center gap-2 bg-background-color p-1 rounded-2xl md:rounded-lg border border-border-color">
+          <div className="h-[38px] md:h-[50px] flex items-center gap-2 bg-background-color px-2 rounded-2xl md:rounded-lg border border-border-color">
             <button
               onClick={handlePrevDay}
               className="p-2 hover:bg-white/5 rounded-lg text-text-color transition-colors cursor-pointer"

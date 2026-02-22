@@ -140,7 +140,7 @@ export default function Home() {
             </h1>
           </div>
           <div className="flex items-center justify-between gap-2 md:gap-4 :w-auto">
-            <div className="flex items-center gap-2 bg-background-color p-1 rounded-2xl md:rounded-lg border border-border-color">
+            <div className="h-[38px] md:h-[50px] flex items-center gap-2 bg-background-color px-2 rounded-2xl md:rounded-lg border border-border-color">
               <button
                 onClick={handlePrevDay}
                 disabled={isToday()}
