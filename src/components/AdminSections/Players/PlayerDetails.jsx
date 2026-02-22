@@ -10,6 +10,16 @@ import { TbEdit } from "react-icons/tb";
 
 import { supabase } from "../../../../supabaseClient";
 import NewPlayerForm from "./NewPlayerForm";
+import toast from "react-hot-toast";
+import {
+  BsClock,
+  BsCheckLg,
+  BsPerson,
+  BsPlus,
+  BsSearch,
+  BsTrash,
+  BsX,
+} from "react-icons/bs";
 
 const getAvatarColor = (name) => {
   const colors = [
@@ -61,6 +71,11 @@ export default function PlayerDetails() {
     key: "rawDate",
     direction: "desc",
   });
+
+  // Payment states
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedBP, setSelectedBP] = useState(null);
+  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
 
   const handleSort = (key) => {
     let direction = "asc";
@@ -162,7 +177,7 @@ export default function PlayerDetails() {
         const booking = bp.bookings;
         const courtName = booking?.courts?.name || "Cancha desconocida";
         // Calculate duration
-        const start = new Date(booking.start_time); 
+        const start = new Date(booking.start_time);
         const end = new Date(booking.end_time);
         const duration = (end - start) / (1000 * 60); // minutes
 
@@ -239,6 +254,51 @@ export default function PlayerDetails() {
     const dateStr = `${year}-${month}-${day}`;
 
     navigate(`/admin/bookings?date=${dateStr}&bookingId=${booking.bookingId}`);
+  };
+
+  const handleStatusClick = (e, booking) => {
+    e.stopPropagation(); // Don't trigger the row click navigate
+    if (booking.status === "Pendiente") {
+      setSelectedBP(booking);
+      setShowPaymentModal(true);
+    }
+  };
+
+  const confirmPayment = async (method) => {
+    if (!selectedBP) return;
+
+    setIsUpdatingPayment(true);
+    try {
+      // 1. Update booking_player
+      const { error: bpError } = await supabase
+        .from("booking_players")
+        .update({ is_paid: true })
+        .eq("id", selectedBP.id);
+
+      if (bpError) throw bpError;
+
+      // 2. Insert payment record
+      const amount = Number(selectedBP.amount.replace("$", ""));
+      const { error: pError } = await supabase.from("payments").insert([
+        {
+          booking_player_id: selectedBP.id,
+          amount: amount,
+          payment_method: method,
+        },
+      ]);
+
+      if (pError) throw pError;
+
+      toast.success("Pago registrado exitosamente");
+      setRefreshKey((prev) => prev + 1);
+      setShowPaymentModal(false);
+      setSelectedBP(null);
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      toast.error(error.message || "Error al registrar pago");
+    } finally {
+      setIsUpdatingPayment(false);
+    }
   };
 
   return (
@@ -492,12 +552,13 @@ export default function PlayerDetails() {
                 {/* Status */}
                 <div className="col-span-2 md:col-span-1 flex justify-start md:justify-start order-2 md:order-5">
                   <span
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                    onClick={(e) => handleStatusClick(e, booking)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
                       booking.status === "Pagado"
                         ? "bg-primary/10 text-primary border-primary/20"
                         : booking.status === "Reservado"
                           ? "bg-white/10 text-white/70 border-white/10"
-                          : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
+                          : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20 cursor-pointer"
                     }`}
                   >
                     {booking.status}
@@ -515,6 +576,58 @@ export default function PlayerDetails() {
       <div className="text-xs text-text-color/40 mt-2 ml-2">
         Mostrando {bookings.length} reserva(s)
       </div>
+
+      {/* Payment Method Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => !isUpdatingPayment && setShowPaymentModal(false)}
+          />
+          <div className="relative bg-background-card-color border border-white/10 md:p-6 p-2 rounded-2xl md:rounded-lg shadow-2xl max-w-sm w-full flex flex-col gap-2 md:gap-4 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-lg font-bold text-white text-center">
+              Seleccionar Método de Pago
+            </h3>
+            <p className="text-text-color/70 text-center text-sm">
+              ¿Cómo realizó el pago {player.full_name}?
+            </p>
+            {!isUpdatingPayment ? (
+              <>
+                <div className="grid grid-cols-2 md:gap-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => confirmPayment("Efectivo")}
+                    className="md:h-[50px] w-full flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 cursor-pointer"
+                  >
+                    Efectivo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => confirmPayment("Transferencia")}
+                    className="md:h-[50px] w-full flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 cursor-pointer"
+                  >
+                    Transferencia
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="md:h-[50px] w-full flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border transition-all duration-300 flex-col md:flex-row text-sm bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 gap-4">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                <p className="text-text-color/70 text-sm animate-pulse">
+                  Registrando pago...
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
