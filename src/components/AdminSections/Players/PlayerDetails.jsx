@@ -518,7 +518,7 @@ export default function PlayerDetails() {
               <div
                 key={booking.id}
                 onClick={() => handleBookingClick(booking)}
-                className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 hover:bg-white/5 transition-colors items-center cursor-pointer group border-b border-border-color"
+                className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 p-2 md:p-4 hover:bg-white/5 transition-colors items-center cursor-pointer group border-b border-border-color"
               >
                 {/* Date */}
                 <div className="flex flex-col col-span-2 md:col-span-1 order-1 md:order-1">
@@ -541,9 +541,21 @@ export default function PlayerDetails() {
 
                 {/* Payment Info */}
                 <div className="flex flex-col col-span-1 md:col-span-1 order-5 md:order-4">
-                  <span className="text-xs text-white font-bold uppercase">
-                    {booking.paymentMethod}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {booking.paymentMethod !== "-" ? (
+                      <span
+                        className={`px-2 py-0.5 rounded-2xl text-[10px] font-bold uppercase tracking-wider border ${
+                          booking.paymentMethod === "Efectivo"
+                            ? "bg-purple-500/10 text-purple-500 border-purple-500/20"
+                            : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                        }`}
+                      >
+                        {booking.paymentMethod}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-text-color/40">-</span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-text-color/50">
                     {booking.paidAt}
                   </span>

@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { IoIosTennisball } from "react-icons/io";
 import { BsPeopleFill, BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { FaMoneyBills } from "react-icons/fa6";
-import { TbLogout } from "react-icons/tb";
+import { TbLogout, TbHome } from "react-icons/tb";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -57,9 +57,12 @@ export default function Navbar() {
     const inactiveClass =
       "border-transparent text-text-color hover:bg-primary/10 hover:text-primary hover:border-primary/20";
     const logoutClass =
-      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg md:border cursor-pointer transition-all duration-300 text-red-500 md:bg-red-500/10 text-red-500 md:border-red-500/20 md:hover:bg-red-500/15 md:hover:text-red-500 md:hover:border-red-500/20";
+      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg md:border cursor-pointer transition-all duration-300 text-red-500 md:bg-red-500/10 md:border-red-500/20 md:hover:bg-red-500/15 md:hover:text-red-500 md:hover:border-red-500/20";
+    const exitAdminClass =
+      "flex items-center md:gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg md:border cursor-pointer transition-all duration-300 text-white md:bg-white/5 md:border-white/10 md:hover:bg-white/10 md:hover:border-white/20";
 
     if (sectionName === "logout") return logoutClass;
+    if (sectionName === "exitAdmin") return exitAdminClass;
 
     return `${baseClass} ${
       isActive(sectionName) ? activeClass : inactiveClass
@@ -94,7 +97,7 @@ export default function Navbar() {
           </Link>
         </li>
       </ul>
-      <ul className="flex flex-col gap-2 md:gap-4 md:mt-4 md:w-full w-auto">
+      <ul className="flex flex-row md:flex-col gap-0 md:gap-4 md:mt-4 md:w-full w-auto">
         {/* Monthly Revenue Card */}
         <li className="hidden md:block w-full">
           <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-lg border border-white/10 w-full">
@@ -138,6 +141,14 @@ export default function Navbar() {
               </div>
             </div>
           </div>
+        </li>
+        <li>
+          <Link to="/" className={getLinkClass("exitAdmin")}>
+            <TbHome size={20} />
+            <span className="cursor-pointer hidden md:block">
+              Volver al Inicio
+            </span>
+          </Link>
         </li>
         <li className={getLinkClass("logout")} onClick={handleLogout}>
           <TbLogout size={20} />

@@ -10,39 +10,27 @@ export const StatsCard = ({
 }) => {
   const colorStyles = {
     green: {
-      border: "hover:border-primary/50",
       activeBorder: "border-primary/50",
-      glow: "bg-primary/5 group-hover:bg-primary/10",
       activeGlow: "bg-primary/10",
       icon: "text-primary",
-      text: "group-hover:text-primary",
       activeText: "text-primary",
     },
     blue: {
-      border: "hover:border-sky-400/50",
       activeBorder: "border-sky-400/50",
-      glow: "bg-sky-400/5 group-hover:bg-sky-400/10",
       activeGlow: "bg-sky-400/10",
       icon: "text-sky-400",
-      text: "group-hover:text-sky-400",
       activeText: "text-sky-400",
     },
     purple: {
-      border: "hover:border-purple-500/50",
       activeBorder: "border-purple-500/50",
-      glow: "bg-purple-500/5 group-hover:bg-purple-500/10",
       activeGlow: "bg-purple-500/10",
       icon: "text-purple-500",
-      text: "group-hover:text-purple-500",
       activeText: "text-purple-500",
     },
     yellow: {
-      border: "hover:border-yellow-400/50",
       activeBorder: "border-yellow-400/50",
-      glow: "bg-yellow-400/5 group-hover:bg-yellow-400/10",
       activeGlow: "bg-yellow-400/10",
       icon: "text-yellow-400",
-      text: "group-hover:text-yellow-400",
       activeText: "text-yellow-400",
     },
   };
@@ -64,7 +52,7 @@ export const StatsCard = ({
 
       <div className="flex justify-center md:justify-between items-start">
         <div
-          className={`md:p-3.5 p-2 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-300 ${currentStyle.icon}`}
+          className={`md:p-3.5 p-2 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-inner transition-transform duration-300 ${currentStyle.icon}`}
         >
           {icon}
         </div>
