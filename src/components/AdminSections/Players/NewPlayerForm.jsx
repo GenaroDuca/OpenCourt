@@ -47,7 +47,7 @@ export default function NewPlayerForm({
 
   const CATEGORIES = [
     "Sin Categoría",
-    "Damas A",
+    "Dama A",
     "Dama B",
     "Dama C",
     "Dama D",
