@@ -3,10 +3,9 @@ import { BsPlus, BsPerson } from "react-icons/bs";
 
 const TIME_SLOTS = [];
 for (let i = 9; i < 24; i++) {
-  TIME_SLOTS.push(`${i.toString().padStart(2, "0")}:00`);
-  if (i < 23) {
-    TIME_SLOTS.push(`${i.toString().padStart(2, "0")}:30`);
-  }
+  const h = i.toString().padStart(2, "0");
+  TIME_SLOTS.push(`${h}:00`);
+  TIME_SLOTS.push(`${h}:30`);
 }
 
 export default function BookingCalendar({
@@ -89,15 +88,6 @@ export default function BookingCalendar({
 
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
-          element.classList.add("ring-2", "ring-primary", "scale-105", "z-50");
-          setTimeout(() => {
-            element.classList.remove(
-              "ring-2",
-              "ring-primary",
-              "scale-105",
-              "z-50",
-            );
-          }, 3000);
           clearInterval(textInterval);
         } else if (attempts >= maxAttempts) {
           clearInterval(textInterval);
@@ -114,10 +104,7 @@ export default function BookingCalendar({
       const bStart = new Date(b.start_time);
       const bEnd = new Date(b.end_time);
 
-      const bStartStr = bStart.toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const bStartStr = `${String(bStart.getHours()).padStart(2, "0")}:${String(bStart.getMinutes()).padStart(2, "0")}`;
       return b.court_id === courtId && bStartStr === slotStart;
     });
   };
@@ -142,7 +129,7 @@ export default function BookingCalendar({
         {courts.map((court, index) => (
           <div
             key={court.id}
-            className="bg-background-card-color rounded-2xl md:rounded-lg p-2 md:p-4 border border-white/5 flex flex-col gap-2 md:gap-4"
+            className="bg-background-card-color rounded-2xl md:rounded-lg p-2 md:p-4 border flex flex-col gap-2 md:gap-4"
           >
             {/* Column Header */}
             <div className="flex justify-center items-center py-1">

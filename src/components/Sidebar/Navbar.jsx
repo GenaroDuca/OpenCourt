@@ -144,8 +144,8 @@ export default function Navbar() {
         </li>
         <li>
           <Link to="/" className={getLinkClass("exitAdmin")}>
-            <TbHome size={20} />
-            <span className="cursor-pointer hidden md:block">
+            <TbHome size={20} className="text-text-color" />
+            <span className="cursor-pointer hidden md:block text-text-color">
               Volver al Inicio
             </span>
           </Link>

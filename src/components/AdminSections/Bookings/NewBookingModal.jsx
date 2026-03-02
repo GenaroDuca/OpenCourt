@@ -4,6 +4,11 @@ import {
   updateBooking,
   deleteBooking,
 } from "../../../services/bookingService";
+import {
+  createBlockout,
+  updateBlockout,
+  deleteBlockout,
+} from "../../../services/blockoutService";
 import { createPlayer } from "../../../services/playerService";
 import toast from "react-hot-toast";
 import {
@@ -59,7 +64,7 @@ const getInitials = (name) => {
 // Generate 30 min slots for the dropdown
 const GENERATE_TIME_OPTIONS = () => {
   const slots = [];
-  for (let i = 9; i < 22; i++) {
+  for (let i = 9; i < 24; i++) {
     slots.push(`${i.toString().padStart(2, "0")}:00`);
     slots.push(`${i.toString().padStart(2, "0")}:30`);
   }
@@ -85,9 +90,11 @@ export default function NewBookingModal({
   const [courtId, setCourtId] = useState("");
   const [dateStr, setDateStr] = useState("");
   const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:30");
 
   // Custom Select States
   const [isTimeOpen, setIsTimeOpen] = useState(false);
+  const [isEndTimeOpen, setIsEndTimeOpen] = useState(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [playerSearch, setPlayerSearch] = useState("");
 
@@ -109,9 +116,14 @@ export default function NewBookingModal({
   // Fixed Booking State
   const [isFixed, setIsFixed] = useState(false);
 
+  // Class State
+  const [isClass, setIsClass] = useState(false);
+  const [classReason, setClassReason] = useState("");
+
   const [details, setDetails] = useState(""); // Details for notes
 
   const timeDropdownRef = useRef(null);
+  const endTimeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
 
   const handleUpdatePlayerPrice = (id, newPrice) => {
@@ -122,8 +134,7 @@ export default function NewBookingModal({
 
   useEffect(() => {
     if (isOpen) {
-      if (bookingToEdit && !bookingToEdit.is_blockout) {
-        // EDIT MODE: Pre-fill data
+      if (bookingToEdit) {
         const start = new Date(bookingToEdit.start_time);
 
         // Date
@@ -137,34 +148,46 @@ export default function NewBookingModal({
         const minutes = String(start.getMinutes()).padStart(2, "0");
         setStartTime(`${hours}:${minutes}`);
 
+        const end = new Date(bookingToEdit.end_time);
+        const endHours = String(end.getHours()).padStart(2, "0");
+        const endMinutes = String(end.getMinutes()).padStart(2, "0");
+        setEndTime(`${endHours}:${endMinutes}`);
+
         // Court
         setCourtId(bookingToEdit.court_id);
 
-        // Details
-        setDetails(bookingToEdit.details || "");
-
-        // Players & Type Detection
-        if (
-          bookingToEdit.booking_players &&
-          bookingToEdit.booking_players.length > 0
-        ) {
-          const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
-            id: bp.players.id,
-            full_name: bp.players.full_name,
-            is_student: bp.players.is_student,
-            price: bp.individual_price,
-            is_paid: bp.is_paid,
-            payment_method:
-              bp.payments && bp.payments.length > 0
-                ? bp.payments[0].payment_method
-                : null,
-          }));
-          setSelectedPlayers(mappedPlayers);
+        if (bookingToEdit.is_blockout) {
+          setIsClass(true);
+          setClassReason(bookingToEdit.details || "");
           setIsFixed(bookingToEdit.is_fixed || false);
-        } else {
-          // Fallback if needed
           setSelectedPlayers([]);
-          setIsFixed(false);
+          setDetails("");
+        } else {
+          setIsClass(false);
+          setClassReason("");
+          setDetails(bookingToEdit.details || "");
+
+          if (
+            bookingToEdit.booking_players &&
+            bookingToEdit.booking_players.length > 0
+          ) {
+            const mappedPlayers = bookingToEdit.booking_players.map((bp) => ({
+              id: bp.players.id,
+              full_name: bp.players.full_name,
+              is_student: bp.players.is_student,
+              price: bp.individual_price,
+              is_paid: bp.is_paid,
+              payment_method:
+                bp.payments && bp.payments.length > 0
+                  ? bp.payments[0].payment_method
+                  : null,
+            }));
+            setSelectedPlayers(mappedPlayers);
+            setIsFixed(bookingToEdit.is_fixed || false);
+          } else {
+            setSelectedPlayers([]);
+            setIsFixed(false);
+          }
         }
       } else {
         // CREATE MODE: Defaults
@@ -176,8 +199,18 @@ export default function NewBookingModal({
         setDateStr(targetDateStr);
 
         let targetStartTime = initialTime || "09:00";
-        if (targetStartTime > "21:30") targetStartTime = "21:30";
         setStartTime(targetStartTime);
+
+        const [h, m] = targetStartTime.split(":").map(Number);
+        const defaultEnd = new Date();
+        defaultEnd.setHours(h, m + DURATION_MINUTES);
+        setEndTime(
+          defaultEnd.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }),
+        );
 
         if (initialCourtId) {
           setCourtId(initialCourtId);
@@ -203,11 +236,14 @@ export default function NewBookingModal({
 
         setSelectedPlayers([]);
         setIsFixed(false);
+        setIsClass(false);
+        setClassReason("");
         setDetails("");
       }
 
       setPlayerSearch("");
       setIsTimeOpen(false);
+      setIsEndTimeOpen(false);
       setIsPlayerOpen(false);
     }
   }, [
@@ -237,6 +273,12 @@ export default function NewBookingModal({
         !timeDropdownRef.current.contains(event.target)
       ) {
         setIsTimeOpen(false);
+      }
+      if (
+        endTimeDropdownRef.current &&
+        !endTimeDropdownRef.current.contains(event.target)
+      ) {
+        setIsEndTimeOpen(false);
       }
       if (
         playerDropdownRef.current &&
@@ -331,9 +373,9 @@ export default function NewBookingModal({
     if (!dateStr || !startTime) return false;
 
     const proposedStart = new Date(`${dateStr}T${startTime}`);
-    const proposedEnd = new Date(
-      proposedStart.getTime() + DURATION_MINUTES * 60000,
-    );
+    const proposedEnd = endTime
+      ? new Date(`${dateStr}T${endTime}`)
+      : new Date(proposedStart.getTime() + DURATION_MINUTES * 60000);
 
     return bookings.some((b) => {
       // Exclude current booking if we are editing it
@@ -348,7 +390,14 @@ export default function NewBookingModal({
 
   // Ensure selected court is valid when schedule changes
   useEffect(() => {
-    if (!isOpen || !dateStr || !startTime || !courts || courts.length === 0)
+    if (
+      !isOpen ||
+      !dateStr ||
+      !startTime ||
+      !endTime ||
+      !courts ||
+      courts.length === 0
+    )
       return;
 
     // Check if the current schedule matches the original one (if editing)
@@ -356,7 +405,12 @@ export default function NewBookingModal({
       bookingToEdit &&
       courtId === bookingToEdit.court_id &&
       new Date(bookingToEdit.start_time).toISOString().split("T")[0] ===
-        dateStr;
+        dateStr &&
+      (!isClass ||
+        (`${String(new Date(bookingToEdit.start_time).getHours()).padStart(2, "0")}:${String(new Date(bookingToEdit.start_time).getMinutes()).padStart(2, "0")}` ===
+          startTime &&
+          `${String(new Date(bookingToEdit.end_time).getHours()).padStart(2, "0")}:${String(new Date(bookingToEdit.end_time).getMinutes()).padStart(2, "0")}` ===
+            endTime));
 
     // If it's the original schedule, we don't need to auto-find a new court
     if (isOriginalSchedule) return;
@@ -376,7 +430,7 @@ export default function NewBookingModal({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateStr, startTime, bookings, courts, isOpen]);
+  }, [dateStr, startTime, endTime, isClass, bookings, courts, isOpen]);
 
   const calculateEndTime = (start) => {
     const [hours, minutes] = start.split(":").map(Number);
@@ -396,8 +450,13 @@ export default function NewBookingModal({
 
     setLoading(true);
     try {
-      await deleteBooking(bookingToEdit.id);
-      toast.success("Reserva eliminada");
+      if (bookingToEdit.is_blockout) {
+        await deleteBlockout(bookingToEdit.id);
+        toast.success("Clase eliminada");
+      } else {
+        await deleteBooking(bookingToEdit.id);
+        toast.success("Reserva eliminada");
+      }
 
       onBookingAdded(); // Reload
       onClose();
@@ -419,11 +478,11 @@ export default function NewBookingModal({
       courtId !== bookingToEdit.court_id ||
       new Date(bookingToEdit.start_time).toISOString().split("T")[0] !==
         dateStr ||
-      new Date(bookingToEdit.start_time).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }) !== startTime;
+      `${String(new Date(bookingToEdit.start_time).getHours()).padStart(2, "0")}:${String(new Date(bookingToEdit.start_time).getMinutes()).padStart(2, "0")}` !==
+        startTime ||
+      (isClass &&
+        `${String(new Date(bookingToEdit.end_time).getHours()).padStart(2, "0")}:${String(new Date(bookingToEdit.end_time).getMinutes()).padStart(2, "0")}` !==
+          endTime);
 
     if (!courtId) {
       toast.error("Selecciona una cancha");
@@ -434,61 +493,85 @@ export default function NewBookingModal({
       toast.error("La cancha seleccionada no está disponible en este horario");
       return;
     }
-    if (selectedPlayers.length === 0) {
+    if (isClass && endTime <= startTime) {
+      toast.error("El horario de fin debe ser mayor al horario de inicio");
+      return;
+    }
+    if (isClass && !classReason.trim()) {
+      toast.error("Debes ingresar el nombre de la clase");
+      return;
+    }
+    if (!isClass && selectedPlayers.length === 0) {
       toast.error("Selecciona al menos un jugador");
       return;
     }
 
     setLoading(true);
     try {
-      if (startTime > "21:30") {
-        toast.error("El horario de inicio no puede ser mayor a 21:30");
-        setLoading(false);
-        return;
-      }
       const startDateTime = new Date(`${dateStr}T${startTime}`);
-      const endDateTime = new Date(
-        startDateTime.getTime() + DURATION_MINUTES * 60000,
-      );
+      const endDateTime = endTime
+        ? new Date(`${dateStr}T${endTime}`)
+        : new Date(startDateTime.getTime() + DURATION_MINUTES * 60000);
 
-      // Handle Regular Booking
-      const payload = {
-        court_id: courtId,
-        start_time: startDateTime.toISOString(),
-        end_time: endDateTime.toISOString(),
-        players: selectedPlayers.map((p) => ({
-          id: p.id,
-          price: p.price,
-          is_paid: p.is_paid,
-          payment_method: p.payment_method,
-        })),
-        is_fixed: isFixed,
-        details: details,
-      };
+      if (isClass) {
+        const payload = {
+          court_id: courtId,
+          start_time: startDateTime.toISOString(),
+          end_time: endDateTime.toISOString(),
+          reason: classReason,
+          is_recurring: isFixed,
+          day_of_week: startDateTime.getDay(), // Adding day from start time
+        };
+        console.log("CLASS PAYLOAD:", payload);
 
-      if (bookingToEdit) {
-        // Trying to update a booking
-        await updateBooking(bookingToEdit.id, payload);
-        toast.success("Actualizado exitosamente");
+        if (bookingToEdit && bookingToEdit.is_blockout) {
+          await updateBlockout(bookingToEdit.id, payload);
+          toast.success("Clase actualizada");
+        } else {
+          await createBlockout(payload);
+          toast.success("Clase creada");
+        }
       } else {
-        await createBooking(payload);
-        toast.success("Creado exitosamente");
+        const payload = {
+          court_id: courtId,
+          start_time: startDateTime.toISOString(),
+          end_time: endDateTime.toISOString(),
+          players: selectedPlayers.map((p) => ({
+            id: p.id,
+            price: p.price,
+            is_paid: p.is_paid,
+            payment_method: p.payment_method,
+          })),
+          is_fixed: isFixed,
+          details: details,
+        };
+        console.log("BOOKING PAYLOAD:", payload);
+
+        if (bookingToEdit && !bookingToEdit.is_blockout) {
+          await updateBooking(bookingToEdit.id, payload);
+          toast.success("Actualizado exitosamente");
+        } else {
+          await createBooking(payload);
+          toast.success("Creado exitosamente");
+        }
       }
 
       onBookingAdded();
+      onClose(); // Only close on success
 
-      if (bookingToEdit) {
-        onClose();
-      } else {
+      if (!bookingToEdit) {
         setSelectedPlayers([]);
-        setDetails(""); // Reset details
+        setDetails("");
+        setClassReason("");
       }
     } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Error al guardar");
+      console.error("DEBUG SUBMIT ERROR:", err);
+      const errorMsg =
+        err.message || err.error_description || "Error al guardar";
+      const errorDetails = err.details || "";
+      toast.error(`${errorMsg} ${errorDetails}`);
     } finally {
       setLoading(false);
-      onClose();
     }
   };
 
@@ -523,12 +606,18 @@ export default function NewBookingModal({
           <div>
             <h2 className="text-xl md:text-3xl font-bold text-white">
               {showDeleteConfirm
-                ? "¿Eliminar Reserva?"
+                ? isClass
+                  ? "¿Eliminar Clase?"
+                  : "¿Eliminar Reserva?"
                 : showPaymentModal
                   ? "Registrar Pago"
                   : bookingToEdit
-                    ? "Editar Reserva"
-                    : "Nueva Reserva"}
+                    ? isClass
+                      ? "Editar Clase"
+                      : "Editar Reserva"
+                    : isClass
+                      ? "Nueva Clase"
+                      : "Nueva Reserva"}
             </h2>
             {!showDeleteConfirm && !showPaymentModal && (
               <input
@@ -556,7 +645,8 @@ export default function NewBookingModal({
             </div>
             <div className="flex flex-col gap-2">
               <p className="text-xl font-bold text-white">
-                ¿Estás seguro de que deseas eliminar esta reserva?
+                ¿Estás seguro de que deseas eliminar esta{" "}
+                {isClass ? "clase" : "reserva"}?
               </p>
               <p className="text-text-color/60 text-sm">
                 Esta acción no se puede deshacer y liberará el horario en la
@@ -570,7 +660,9 @@ export default function NewBookingModal({
                 disabled={loading}
                 className="h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 justify-center"
               >
-                {loading ? "Eliminando..." : "Sí, eliminar reserva"}
+                {loading
+                  ? "Eliminando..."
+                  : `Sí, eliminar ${isClass ? "clase" : "reserva"}`}
               </button>
               <button
                 type="button"
@@ -653,6 +745,77 @@ export default function NewBookingModal({
                   </div>
                 </div>
 
+                {/* Manual Price & Checkboxes Toggles */}
+                <div className="flex justify-between items-center bg-white/5 p-2 rounded-lg border border-white/5">
+                  {!isClass ? (
+                    <div
+                      className="flex items-center gap-2 cursor-pointer group justify-center"
+                      onClick={() => setManualPriceMode(!manualPriceMode)}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-2xl md:rounded-lg border flex items-center justify-center transition-all ${
+                          manualPriceMode
+                            ? "bg-primary border-primary text-black"
+                            : "border-text-color/30 group-hover:border-primary/50"
+                        }`}
+                      >
+                        {manualPriceMode && <BsCheckLg size={12} />}
+                      </div>
+                      <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                        Precio especial
+                      </span>
+                    </div>
+                  ) : (
+                    <div />
+                  )}
+
+                  <div className="flex items-center gap-4 ml-auto">
+                    {/* Fixed Booking Toggle */}
+                    <div
+                      className="flex items-center gap-2 cursor-pointer group justify-center"
+                      onClick={() => setIsFixed(!isFixed)}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-2xl md:rounded-lg border flex items-center justify-center transition-all ${
+                          isFixed
+                            ? "bg-primary border-primary text-black"
+                            : "border-text-color/30 group-hover:border-primary/50"
+                        }`}
+                      >
+                        {isFixed && <BsCheckLg size={12} />}
+                      </div>
+                      <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                        Fijo
+                      </span>
+                    </div>
+
+                    {/* Class Toggle */}
+                    <div
+                      className={`flex items-center gap-2 cursor-pointer group justify-center ${bookingToEdit ? "opacity-50 pointer-events-none" : ""}`}
+                      onClick={() => {
+                        if (!bookingToEdit) {
+                          const newIsClass = !isClass;
+                          setIsClass(newIsClass);
+                          if (newIsClass) setSelectedPlayers([]);
+                        }
+                      }}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-2xl md:rounded-lg border flex items-center justify-center transition-all ${
+                          isClass
+                            ? "bg-primary border-primary text-black"
+                            : "border-text-color/30 group-hover:border-primary/50"
+                        }`}
+                      >
+                        {isClass && <BsCheckLg size={12} />}
+                      </div>
+                      <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
+                        Clase
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Time Selection (Custom Dropdown) */}
                 <div
                   className="flex flex-col gap-2 relative z-30"
@@ -693,6 +856,19 @@ export default function NewBookingModal({
                           onClick={() => {
                             setStartTime(time);
                             setIsTimeOpen(false);
+
+                            if (!isClass) {
+                              const [h, m] = time.split(":").map(Number);
+                              const defaultEnd = new Date();
+                              defaultEnd.setHours(h, m + DURATION_MINUTES);
+                              setEndTime(
+                                defaultEnd.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }),
+                              );
+                            }
                           }}
                           className={`p-2 md:p-4 rounded-2xl md:rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
                             startTime === time
@@ -708,289 +884,328 @@ export default function NewBookingModal({
                   </div>
                 </div>
 
-                {/* PLAYERS SECTION */}
-                <div className="flex items-center gap-3 text-primary">
-                  <span className="h-px flex-1 bg-border-color"></span>
-                  <span className="uppercase text-xs font-bold tracking-widest text-text-color-green">
-                    Jugadores
-                  </span>
-                  <span className="h-px flex-1 bg-border-color"></span>
-                </div>
-
-                {/* Player Selector (Custom Dropdown) */}
                 <div
-                  className="flex flex-col gap-2 relative z-20"
-                  ref={playerDropdownRef}
+                  className="flex flex-col gap-2 relative"
+                  ref={endTimeDropdownRef}
                 >
                   <label className="text-sm font-medium text-text-color">
-                    Agregar Jugador
+                    Horario Fin
                   </label>
                   <div
-                    onClick={() => setIsPlayerOpen(!isPlayerOpen)}
+                    onClick={() => setIsEndTimeOpen(!isEndTimeOpen)}
                     className={`w-full pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
-                      isPlayerOpen
+                      isEndTimeOpen
                         ? "border-primary/30"
                         : "border-border-color hover:border-primary/30"
                     }`}
                   >
-                    <div className="flex items-center gap-3 text-text-color/50">
-                      <BsPerson size={18} />
-                      <span className="text-text-color">
-                        Seleccionar jugador...
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <BsClock className="text-text-color/50" />
+                      <span>{endTime}</span>
                     </div>
                     <BsChevronDown
-                      className={`text-text-color/50 transition-transform duration-300 ${isPlayerOpen ? "rotate-180" : ""}`}
+                      className={`text-text-color/50 transition-transform duration-300 ${isEndTimeOpen ? "rotate-180" : ""}`}
                     />
                   </div>
 
                   {/* Dropdown Options */}
                   <div
                     className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-2xl md:rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
-                      isPlayerOpen
+                      isEndTimeOpen
                         ? "opacity-100 translate-y-0 scale-100 visible"
                         : "opacity-0 -translate-y-2 scale-95 invisible pointer-events-none"
                     }`}
                   >
-                    {/* Search Input inside Dropdown */}
-                    <div className="p-2 border-b border-border-color">
-                      <div className="flex items-center bg-background-color rounded-2xl md:rounded-lg px-3 py-2 border border-border-color">
-                        <BsSearch className="text-text-color/50 mr-2" />
-                        <input
-                          type="text"
-                          placeholder="Buscar jugador..."
-                          className="bg-transparent border-none outline-none text-text-color text-sm w-full placeholder-text-color/30"
-                          value={playerSearch}
-                          onChange={(e) => setPlayerSearch(e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                    </div>
-
-                    <div className="max-h-60 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-1">
-                      {filteredPlayers.length > 0 ? (
-                        filteredPlayers.map((player) => {
-                          const isSelected = selectedPlayers.some(
-                            (p) => p.id === player.id,
-                          );
-                          return (
-                            <div
-                              key={player.id}
-                              onClick={() =>
-                                !isSelected && handleAddPlayer(player)
-                              }
-                              className={`p-2 rounded-2xl md:rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
-                                isSelected
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-text-color hover:bg-white/5"
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(
-                                    player.full_name,
-                                  )}`}
-                                >
-                                  {getInitials(player.full_name)}
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="font-medium">
-                                    {player.full_name}
-                                  </span>
-                                  <span className="text-xs text-text-color/50">
-                                    {player.is_student ? "Alumno" : "Visitante"}
-                                  </span>
-                                </div>
-                              </div>
-                              {isSelected ? (
-                                <BsCheckLg size={16} className="text-primary" />
-                              ) : null}
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="p-3 flex flex-col gap-2">
-                          <div className="text-center text-text-color/50 text-sm mb-1">
-                            No se encontraron jugadores
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar p-2 md:p-4 flex flex-col gap-2">
+                      {TIME_OPTIONS.filter((time) => time > startTime).map(
+                        (time) => (
+                          <div
+                            key={time}
+                            onClick={() => {
+                              setEndTime(time);
+                              setIsEndTimeOpen(false);
+                            }}
+                            className={`p-2 md:p-4 rounded-2xl md:rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
+                              endTime === time
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-text-color hover:bg-white/5"
+                            }`}
+                          >
+                            {time}
+                            {endTime === time && <BsCheckLg size={14} />}
                           </div>
-                          {playerSearch.trim() !== "" && (
-                            <div className="flex flex-col gap-2 bg-white/5 p-2 rounded-2xl md:rounded-lg border border-primary/20">
-                              <div
-                                className="flex items-center justify-center gap-2 px-1 cursor-pointer group"
-                                onClick={() =>
-                                  setIsQuickAddStudent(!isQuickAddStudent)
-                                }
-                              >
-                                <div
-                                  className={`w-5 h-5 border flex items-center justify-center transition-all duration-300 rounded-full ${
-                                    isQuickAddStudent
-                                      ? "bg-primary border-primary"
-                                      : "border-text-color/50 group-hover:border-primary"
-                                  }`}
-                                >
-                                  {isQuickAddStudent && (
-                                    <BsCheckLg
-                                      size={14}
-                                      className="text-white"
-                                    />
-                                  )}
-                                </div>
-                                <label className="text-sm text-text-color cursor-pointer select-none group-hover:text-primary transition-colors">
-                                  ¿Es Alumno?
-                                </label>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={handleQuickAddPlayer}
-                                className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-2xl md:rounded-lg py-2 text-sm font-bold transition-all text-center flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                              >
-                                <BsPlus size={18} />
-                                Agregar "{playerSearch}"
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                        ),
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Manual Price Toggle */}
-                <div className="flex justify-between">
-                  <div
-                    className="flex items-center gap-2 cursor-pointer group justify-center"
-                    onClick={() => setManualPriceMode(!manualPriceMode)}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-2xl md:rounded-lg border flex items-center justify-center transition-all ${
-                        manualPriceMode
-                          ? "bg-primary border-primary text-black"
-                          : "border-text-color/30 group-hover:border-primary/50"
-                      }`}
-                    >
-                      {manualPriceMode && <BsCheckLg size={12} />}
+                {!isClass ? (
+                  <>
+                    {/* PLAYERS SECTION */}
+                    <div className="flex items-center gap-3 text-primary">
+                      <span className="h-px flex-1 bg-border-color"></span>
+                      <span className="uppercase text-xs font-bold tracking-widest text-text-color-green">
+                        Jugadores
+                      </span>
+                      <span className="h-px flex-1 bg-border-color"></span>
                     </div>
-                    <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
-                      Habilitar precio manual
-                    </span>
-                  </div>
 
-                  {/* Fixed Booking Toggle */}
-                  <div
-                    className="flex items-center gap-2 cursor-pointer group justify-center"
-                    onClick={() => setIsFixed(!isFixed)}
-                  >
+                    {/* Player Selector (Custom Dropdown) */}
                     <div
-                      className={`w-5 h-5 rounded-2xl md:rounded-lg border flex items-center justify-center transition-all ${
-                        isFixed
-                          ? "bg-primary border-primary text-black"
-                          : "border-text-color/30 group-hover:border-primary/50"
-                      }`}
+                      className="flex flex-col gap-2 relative"
+                      ref={playerDropdownRef}
                     >
-                      {isFixed && <BsCheckLg size={12} />}
-                    </div>
-                    <span className="text-sm text-text-color select-none group-hover:text-primary transition-colors">
-                      Turno Fijo
-                    </span>
-                  </div>
-                </div>
-                {/* Selected Players List */}
-                <div className="grid grid-cols-1 gap-2">
-                  {selectedPlayers.map((player) => (
-                    <div
-                      key={player.id}
-                      className="flex justify-between items-center bg-background-color p-2 md:p-4 rounded-2xl md:rounded-lg border border-border-color group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shrink-0 ${getAvatarColor(
-                            player.full_name,
-                          )}`}
-                        >
-                          {getInitials(player.full_name)}
+                      <label className="text-sm font-medium text-text-color">
+                        Agregar Jugador
+                      </label>
+                      <div
+                        onClick={() => setIsPlayerOpen(!isPlayerOpen)}
+                        className={`w-full pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                          isPlayerOpen
+                            ? "border-primary/30"
+                            : "border-border-color hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 text-text-color/50">
+                          <BsPerson size={18} />
+                          <span className="text-text-color">
+                            Seleccionar jugador...
+                          </span>
                         </div>
-                        <div>
-                          <Link
-                            to={`/admin/players/${player.id}`}
-                            className="text-[12px] font-bold text-text-color hover:text-primary hover:underline transition-colors"
-                          >
-                            {player.full_name}
-                          </Link>
-                          <p className="text-xs text-text-color/50">
-                            {player.is_student ? "Alumno" : "Visitante"}
-                          </p>
-                        </div>
+                        <BsChevronDown
+                          className={`text-text-color/50 transition-transform duration-300 ${isPlayerOpen ? "rotate-180" : ""}`}
+                        />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex flex-col-reverse md:flex-row items-center md:items-center gap-1 md:gap-3">
-                          <button
-                            type="button"
-                            onClick={() => handleTogglePaid(player)}
-                            className={`text-[8px] md:text-md font-bold px-2 py-1 rounded-2xl md:rounded-lg border transition-colors cursor-pointer ${
-                              player.is_paid
-                                ? player.payment_method === "Transferencia"
-                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20"
-                                  : "bg-purple-500/10 text-purple-500 border-purple-500/20 hover:bg-purple-500/20"
-                                : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
-                            }`}
-                          >
-                            {player.is_paid
-                              ? player.payment_method === "Transferencia"
-                                ? "TRANSF."
-                                : "EFECTIVO"
-                              : "PENDIENTE"}
-                          </button>
 
-                          {manualPriceMode ? (
-                            <div className="relative">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-text-color/50 text-xs font-bold">
-                                $
-                              </span>
-                              <input
-                                type="number"
-                                value={player.price}
-                                onChange={(e) =>
-                                  handleUpdatePlayerPrice(
-                                    player.id,
-                                    Number(e.target.value),
-                                  )
-                                }
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-20 bg-black/20 border border-white/10 px-2 py-1 pl-4 text-sm font-bold text-primary focus:outline-none focus:border-primary/50 rounded-2xl md:rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              />
-                            </div>
+                      {/* Dropdown Options */}
+                      <div
+                        className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-2xl md:rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
+                          isPlayerOpen
+                            ? "opacity-100 translate-y-0 scale-100 visible"
+                            : "opacity-0 -translate-y-2 scale-95 invisible pointer-events-none"
+                        }`}
+                      >
+                        {/* Search Input inside Dropdown */}
+                        <div className="p-2 border-b border-border-color">
+                          <div className="flex items-center bg-background-color rounded-2xl md:rounded-lg px-3 py-2 border border-border-color">
+                            <BsSearch className="text-text-color/50 mr-2" />
+                            <input
+                              type="text"
+                              placeholder="Buscar jugador..."
+                              className="bg-transparent border-none outline-none text-text-color text-sm w-full placeholder-text-color/30"
+                              value={playerSearch}
+                              onChange={(e) => setPlayerSearch(e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              autoFocus
+                            />
+                          </div>
+                        </div>
+
+                        <div className="max-h-60 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-1">
+                          {filteredPlayers.length > 0 ? (
+                            filteredPlayers.map((player) => {
+                              const isSelected = selectedPlayers.some(
+                                (p) => p.id === player.id,
+                              );
+                              return (
+                                <div
+                                  key={player.id}
+                                  onClick={() =>
+                                    !isSelected && handleAddPlayer(player)
+                                  }
+                                  className={`p-2 rounded-2xl md:rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
+                                    isSelected
+                                      ? "bg-primary/10 text-primary font-medium"
+                                      : "text-text-color hover:bg-white/5"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div
+                                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(
+                                        player.full_name,
+                                      )}`}
+                                    >
+                                      {getInitials(player.full_name)}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">
+                                        {player.full_name}
+                                      </span>
+                                      <span className="text-xs text-text-color/50">
+                                        {player.is_student
+                                          ? "Alumno"
+                                          : "Visitante"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {isSelected ? (
+                                    <BsCheckLg
+                                      size={16}
+                                      className="text-primary"
+                                    />
+                                  ) : null}
+                                </div>
+                              );
+                            })
                           ) : (
-                            <span className="text-xs md:text-sm font-bold text-primary">
-                              ${player.price}
-                            </span>
+                            <div className="p-3 flex flex-col gap-2">
+                              <div className="text-center text-text-color/50 text-sm mb-1">
+                                No se encontraron jugadores
+                              </div>
+                              {playerSearch.trim() !== "" && (
+                                <div className="flex flex-col gap-2 bg-white/5 p-2 rounded-2xl md:rounded-lg border border-primary/20">
+                                  <div
+                                    className="flex items-center justify-center gap-2 px-1 cursor-pointer group"
+                                    onClick={() =>
+                                      setIsQuickAddStudent(!isQuickAddStudent)
+                                    }
+                                  >
+                                    <div
+                                      className={`w-5 h-5 border flex items-center justify-center transition-all duration-300 rounded-full ${
+                                        isQuickAddStudent
+                                          ? "bg-primary border-primary"
+                                          : "border-text-color/50 group-hover:border-primary"
+                                      }`}
+                                    >
+                                      {isQuickAddStudent && (
+                                        <BsCheckLg
+                                          size={14}
+                                          className="text-white"
+                                        />
+                                      )}
+                                    </div>
+                                    <label className="text-sm text-text-color cursor-pointer select-none group-hover:text-primary transition-colors">
+                                      ¿Es Alumno?
+                                    </label>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={handleQuickAddPlayer}
+                                    className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-2xl md:rounded-lg py-2 text-sm font-bold transition-all text-center flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                  >
+                                    <BsPlus size={18} />
+                                    Agregar "{playerSearch}"
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePlayer(player.id)}
-                          className="text-text-color/30 hover:text-red-500 transition-colors p-1 cursor-pointer"
-                        >
-                          <BsTrash />
-                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
 
-                {/* Notes / Details for Regular Booking */}
-                <div className="flex flex-col gap-2 mt-2">
-                  <label className="text-sm font-medium text-text-color">
-                    Notas (Opcional)
-                  </label>
-                  <textarea
-                    value={details}
-                    onChange={(e) => setDetails(e.target.value)}
-                    placeholder="Algún detalle extra..."
-                    rows={2}
-                    className="w-full h-20 p-2 md:p-4  rounded-2xl md:rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none text-sm"
-                  />
-                </div>
+                    {/* Selected Players List */}
+                    <div className="grid grid-cols-1 gap-2">
+                      {selectedPlayers.map((player) => (
+                        <div
+                          key={player.id}
+                          className="flex justify-between items-center bg-background-color p-2 md:p-4 rounded-2xl md:rounded-lg border border-border-color group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shrink-0 ${getAvatarColor(
+                                player.full_name,
+                              )}`}
+                            >
+                              {getInitials(player.full_name)}
+                            </div>
+                            <div>
+                              <Link
+                                to={`/admin/players/${player.id}`}
+                                className="text-[12px] font-bold text-text-color hover:text-primary hover:underline transition-colors"
+                              >
+                                {player.full_name}
+                              </Link>
+                              <p className="text-xs text-text-color/50">
+                                {player.is_student ? "Alumno" : "Visitante"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex flex-col-reverse md:flex-row items-center md:items-center gap-1 md:gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePaid(player)}
+                                className={`text-[8px] md:text-md font-bold px-2 py-1 rounded-2xl md:rounded-lg border transition-colors cursor-pointer ${
+                                  player.is_paid
+                                    ? player.payment_method === "Transferencia"
+                                      ? "bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20"
+                                      : "bg-purple-500/10 text-purple-500 border-purple-500/20 hover:bg-purple-500/20"
+                                    : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/20"
+                                }`}
+                              >
+                                {player.is_paid
+                                  ? player.payment_method === "Transferencia"
+                                    ? "TRANSF."
+                                    : "EFECTIVO"
+                                  : "PENDIENTE"}
+                              </button>
+
+                              {manualPriceMode ? (
+                                <div className="relative">
+                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-text-color/50 text-xs font-bold">
+                                    $
+                                  </span>
+                                  <input
+                                    type="number"
+                                    value={player.price}
+                                    onChange={(e) =>
+                                      handleUpdatePlayerPrice(
+                                        player.id,
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-20 bg-black/20 border border-white/10 px-2 py-1 pl-4 text-sm font-bold text-primary focus:outline-none focus:border-primary/50 rounded-2xl md:rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  />
+                                </div>
+                              ) : (
+                                <span className="text-xs md:text-sm font-bold text-primary">
+                                  ${player.price}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePlayer(player.id)}
+                              className="text-text-color/30 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                            >
+                              <BsTrash />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Notes / Details for Regular Booking */}
+                    <div className="flex flex-col gap-2 mt-2">
+                      <label className="text-sm font-medium text-text-color">
+                        Notas (Opcional)
+                      </label>
+                      <textarea
+                        value={details}
+                        onChange={(e) => setDetails(e.target.value)}
+                        placeholder="Algún detalle extra..."
+                        rows={2}
+                        className="w-full h-20 p-2 md:p-4 rounded-2xl md:rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none text-sm"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col gap-2 relative mt-4 px-2 md:px-0">
+                    <label className="text-sm font-medium text-text-color">
+                      Nombre o Razón de la Clase
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-background-color border border-border-color px-4 py-3 text-sm text-text-color focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all rounded-2xl md:rounded-lg shadow-sm mb-10"
+                      placeholder="Ej: CLASE Pamela"
+                      value={classReason}
+                      onChange={(e) => setClassReason(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -998,17 +1213,21 @@ export default function NewBookingModal({
             <div className="p-2 md:p-4 border-t border-border-color bg-white/5 flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <div className="flex flex-col">
-                  <span className="text-xs text-text-color/60">
-                    Total a pagar
-                  </span>
-                  <span className="text-2xl font-bold text-white">
-                    ${totalPrice.toLocaleString()}
-                  </span>
+                  {!isClass && (
+                    <>
+                      <span className="text-xs text-text-color/60">
+                        Total a pagar
+                      </span>
+                      <span className="text-2xl font-bold text-white">
+                        ${totalPrice.toLocaleString()}
+                      </span>
+                    </>
+                  )}
                 </div>
                 <div className="text-right flex items-center gap-2">
                   <span className="text-sm text-text-color/60">Finaliza</span>
                   <span className="text-sm font-bold text-primary">
-                    {calculateEndTime(startTime)}
+                    {endTime}
                   </span>
                 </div>
               </div>
@@ -1024,13 +1243,21 @@ export default function NewBookingModal({
 
                 <button
                   type="submit"
-                  disabled={loading || selectedPlayers.length === 0}
+                  disabled={
+                    loading ||
+                    (isClass
+                      ? !classReason.trim()
+                      : selectedPlayers.length === 0)
+                  }
                   className={`md:h-[50px] w-full  flex items-center justify-center md:px-4 md:py-3 p-2 gap-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 flex-col md:flex-row text-sm 
-                  ${
-                    !loading && selectedPlayers.length > 0
-                      ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
-                      : "bg-text-color/10 text-text-color/50 border-text-color/10 cursor-not-allowed opacity-50"
-                  }`}
+                   ${
+                     !loading &&
+                     (isClass
+                       ? classReason.trim().length > 0
+                       : selectedPlayers.length > 0)
+                       ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
+                       : "bg-text-color/10 text-text-color/50 border-text-color/10 cursor-not-allowed opacity-50"
+                   }`}
                 >
                   {loading ? (
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>

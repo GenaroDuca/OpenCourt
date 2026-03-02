@@ -58,3 +58,35 @@ export const getBlockoutsByDate = async (date) => {
 
   return [...recurringNormalized, ...oneTimeData];
 };
+
+export const createBlockout = async (payload) => {
+  const { data, error } = await supabase
+    .from("court_blockouts")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const updateBlockout = async (id, payload) => {
+  const { data, error } = await supabase
+    .from("court_blockouts")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteBlockout = async (id) => {
+  const { error } = await supabase
+    .from("court_blockouts")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+};
