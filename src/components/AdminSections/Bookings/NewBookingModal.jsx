@@ -1188,7 +1188,7 @@ export default function NewBookingModal({
                         onChange={(e) => setDetails(e.target.value)}
                         placeholder="Algún detalle extra..."
                         rows={2}
-                        className="w-full h-20 p-2 md:p-4 rounded-2xl md:rounded-lg bg-background-color border border-border-color text-text-color placeholder-text-color/30 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all resize-none text-sm"
+                        className="w-full h-30 pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color flex items-center justify-between transition-all duration-300 border-border-color hover:border-primary/30 focus:outline-none resize-none"
                       />
                     </div>
                   </>
@@ -1199,7 +1199,7 @@ export default function NewBookingModal({
                     </label>
                     <input
                       type="text"
-                      className="w-full bg-background-color border border-border-color px-4 py-3 text-sm text-text-color focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all rounded-2xl md:rounded-lg shadow-sm mb-10"
+                      className="w-full pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color flex items-center justify-between transition-all duration-300 border-border-color hover:border-primary/30 focus:outline-none"
                       placeholder="Ej: CLASE Pamela"
                       value={classReason}
                       onChange={(e) => setClassReason(e.target.value)}
