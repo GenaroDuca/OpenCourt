@@ -64,7 +64,7 @@ const getInitials = (name) => {
 // Generate 30 min slots for the dropdown
 const GENERATE_TIME_OPTIONS = () => {
   const slots = [];
-  for (let i = 9; i < 24; i++) {
+  for (let i = 8; i < 24; i++) {
     slots.push(`${i.toString().padStart(2, "0")}:00`);
     slots.push(`${i.toString().padStart(2, "0")}:30`);
   }
@@ -89,8 +89,8 @@ export default function NewBookingModal({
 }) {
   const [courtId, setCourtId] = useState("");
   const [dateStr, setDateStr] = useState("");
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:30");
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("09:30");
 
   // Custom Select States
   const [isTimeOpen, setIsTimeOpen] = useState(false);
@@ -198,7 +198,7 @@ export default function NewBookingModal({
         const targetDateStr = `${year}-${month}-${day}`;
         setDateStr(targetDateStr);
 
-        let targetStartTime = initialTime || "09:00";
+        let targetStartTime = initialTime || "08:00";
         setStartTime(targetStartTime);
 
         const [h, m] = targetStartTime.split(":").map(Number);
