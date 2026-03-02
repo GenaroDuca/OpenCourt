@@ -170,8 +170,6 @@ export default function Bookings() {
   };
 
   const handleBookingClick = (booking) => {
-    if (booking.is_blockout) return; // Prevent editing blockouts
-
     setSearchParams(
       (prev) => {
         const newParams = new URLSearchParams(prev);
