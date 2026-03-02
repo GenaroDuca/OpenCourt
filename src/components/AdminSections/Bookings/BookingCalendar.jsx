@@ -2,7 +2,7 @@ import React from "react";
 import { BsPlus, BsPerson } from "react-icons/bs";
 
 const TIME_SLOTS = [];
-for (let i = 9; i < 24; i++) {
+for (let i = 8; i < 24; i++) {
   const h = i.toString().padStart(2, "0");
   TIME_SLOTS.push(`${h}:00`);
   TIME_SLOTS.push(`${h}:30`);
@@ -41,12 +41,12 @@ export default function BookingCalendar({
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
-    // Start 9:00
-    const startMinutes = 9 * 60;
+    // Start 8:00
+    const startMinutes = 8 * 60;
     const nowMinutes = currentHour * 60 + currentMinute;
 
     const diff = nowMinutes - startMinutes;
-    if (diff < 0 || diff > 15 * 60) return null;
+    if (diff < 0 || diff > 16 * 60) return null;
 
     const slotHeight = isMobile ? 40 : 80;
     const gap = 8;
