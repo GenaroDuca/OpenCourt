@@ -1193,9 +1193,9 @@ export default function NewBookingModal({
                     </div>
                   </>
                 ) : (
-                  <div className="flex flex-col gap-2 relative mt-4 px-2 md:px-0">
+                  <div className="flex flex-col gap-2 relative ">
                     <label className="text-sm font-medium text-text-color">
-                      Nombre o Razón de la Clase
+                      Nombre de la Clase
                     </label>
                     <input
                       type="text"

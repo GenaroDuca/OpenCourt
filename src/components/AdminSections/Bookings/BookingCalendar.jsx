@@ -129,7 +129,7 @@ export default function BookingCalendar({
         {courts.map((court, index) => (
           <div
             key={court.id}
-            className="bg-background-card-color rounded-2xl md:rounded-lg p-2 md:p-4 border flex flex-col gap-2 md:gap-4"
+            className="bg-background-card-color rounded-2xl md:rounded-lg p-2 md:p-4 flex flex-col gap-2 md:gap-4"
           >
             {/* Column Header */}
             <div className="flex justify-center items-center py-1">
