@@ -10,6 +10,8 @@ import { TiWarning } from "react-icons/ti";
 import { getPlayers } from "../../../services/playerService";
 import PlayersFilter from "./PlayersFilter";
 
+import { normalizeText } from "../../../utils/textUtils";
+
 export default function Players() {
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [players, setPlayers] = useState([]);
@@ -59,11 +61,12 @@ export default function Players() {
 
   const filteredPlayers = players
     .filter((player) => {
+      const normalizedSearch = normalizeText(searchTerm);
       const matchesSearch =
-        player.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        normalizeText(player.full_name).includes(normalizedSearch) ||
         (player.phone && player.phone.includes(searchTerm)) ||
         (player.category &&
-          player.category.toLowerCase().includes(searchTerm.toLowerCase()));
+          normalizeText(player.category).includes(normalizedSearch));
 
       if (filterType === "student") return matchesSearch && player.is_student;
       if (filterType === "non_student")
