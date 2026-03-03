@@ -16,6 +16,8 @@ import {
   getIncomeMetrics,
 } from "../../../services/paymentService";
 
+import { normalizeText } from "../../../utils/textUtils";
+
 export default function Payments() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -69,9 +71,9 @@ export default function Payments() {
   }, [selectedDate]);
 
   const filteredHistory = history.filter((p) => {
-    const playerName =
-      p.booking_players?.players?.full_name?.toLowerCase() || "";
-    return playerName.includes(searchTerm.toLowerCase());
+    const playerName = p.booking_players?.players?.full_name || "";
+    const normalizedSearch = normalizeText(searchTerm);
+    return normalizeText(playerName).includes(normalizedSearch);
   });
 
   const handleRowClick = (item) => {

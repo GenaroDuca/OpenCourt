@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { normalizeText } from "../../../utils/textUtils";
 import {
   createBooking,
   updateBooking,
@@ -576,10 +577,10 @@ export default function NewBookingModal({
   };
 
   const filteredPlayers = players.filter((p) => {
-    const searchLow = playerSearch.toLowerCase();
+    const normalizedSearch = normalizeText(playerSearch);
     return (
-      p.full_name.toLowerCase().includes(searchLow) ||
-      (p.category && p.category.toLowerCase().includes(searchLow))
+      normalizeText(p.full_name).includes(normalizedSearch) ||
+      (p.category && normalizeText(p.category).includes(normalizedSearch))
     );
   });
 
