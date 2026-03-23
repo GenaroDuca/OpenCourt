@@ -56,7 +56,28 @@ export const getBlockoutsByDate = async (date) => {
     };
   });
 
-  return [...recurringNormalized, ...oneTimeData];
+  // Filter out cancelled recurring classes for this date
+  const cancelledIds = oneTimeData
+    .filter((b) => b.reason && b.reason.startsWith("CANCELLED_CLASS_"))
+    .map((b) => b.reason.replace("CANCELLED_CLASS_", ""));
+
+  const validRecurring = recurringNormalized.filter((block) => {
+    // Check if there's a cancelled marker for this block ID on this date
+    const isCancelledForToday = oneTimeData.some(
+      (single) =>
+        single.reason === `CANCELLED_CLASS_${block.id}` &&
+        new Date(single.start_time).getTime() ===
+          new Date(block.start_time).getTime(),
+    );
+    return !isCancelledForToday;
+  });
+
+  // Remove the cancellation markers from the final returned data
+  const validOneTime = oneTimeData.filter(
+    (b) => !b.reason || !b.reason.startsWith("CANCELLED_CLASS_"),
+  );
+
+  return [...validRecurring, ...validOneTime];
 };
 
 export const createBlockout = async (payload) => {
@@ -89,4 +110,29 @@ export const deleteBlockout = async (id) => {
     .eq("id", id);
 
   if (error) throw error;
+};
+
+export const createBlockoutException = async (
+  classId,
+  courtId,
+  startTime,
+  endTime,
+) => {
+  const payload = {
+    court_id: courtId,
+    start_time: startTime,
+    end_time: endTime,
+    reason: `CANCELLED_CLASS_${classId}`,
+    is_recurring: false,
+    day_of_week: new Date(startTime).getDay(),
+  };
+
+  const { data, error } = await supabase
+    .from("court_blockouts")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 };
