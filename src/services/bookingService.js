@@ -341,6 +341,46 @@ export const deleteBooking = async (id) => {
   return true;
 };
 
+export const deleteBookingSeries = async (booking) => {
+  const start = new Date(booking.start_time);
+  const dayOfWeek = start.getDay();
+  const hours = start.getHours();
+  const minutes = start.getMinutes();
+
+  // Fetch all future fixed bookings for this court
+  const { data: bookings, error } = await supabase
+    .from("bookings")
+    .select("id, start_time")
+    .eq("is_fixed", true)
+    .eq("court_id", booking.court_id)
+    .gte("start_time", booking.start_time);
+
+  if (error) throw error;
+
+  // Filter those matching the exact time of day and day of week
+  const idsToDelete = bookings
+    .filter((b) => {
+      const d = new Date(b.start_time);
+      return (
+        d.getDay() === dayOfWeek &&
+        d.getHours() === hours &&
+        d.getMinutes() === minutes
+      );
+    })
+    .map((b) => b.id);
+
+  if (idsToDelete.length > 0) {
+    const { error: delError } = await supabase
+      .from("bookings")
+      .delete()
+      .in("id", idsToDelete);
+
+    if (delError) throw delError;
+  }
+
+  return true;
+};
+
 export const getCourts = async () => {
   const { data, error } = await supabase
     .from("courts")

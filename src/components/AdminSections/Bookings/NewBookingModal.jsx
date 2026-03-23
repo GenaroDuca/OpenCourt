@@ -4,11 +4,13 @@ import {
   createBooking,
   updateBooking,
   deleteBooking,
+  deleteBookingSeries,
 } from "../../../services/bookingService";
 import {
   createBlockout,
   updateBlockout,
   deleteBlockout,
+  createBlockoutException,
 } from "../../../services/blockoutService";
 import { createPlayer } from "../../../services/playerService";
 import toast from "react-hot-toast";
@@ -446,17 +448,36 @@ export default function NewBookingModal({
 
   const totalPrice = selectedPlayers.reduce((sum, p) => sum + p.price, 0);
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (scope = "single") => {
     if (!bookingToEdit) return;
 
     setLoading(true);
     try {
       if (bookingToEdit.is_blockout) {
-        await deleteBlockout(bookingToEdit.id);
-        toast.success("Clase eliminada");
+        if (scope === "single" && isFixed) {
+          await createBlockoutException(
+            bookingToEdit.id,
+            bookingToEdit.court_id,
+            bookingToEdit.start_time,
+            bookingToEdit.end_time,
+          );
+          toast.success("Clase eliminada para este día");
+        } else {
+          await deleteBlockout(bookingToEdit.id);
+          toast.success(
+            scope === "series"
+              ? "Serie de clases eliminada"
+              : "Clase eliminada",
+          );
+        }
       } else {
-        await deleteBooking(bookingToEdit.id);
-        toast.success("Reserva eliminada");
+        if (scope === "series") {
+          await deleteBookingSeries(bookingToEdit);
+          toast.success("Serie de reservas eliminada");
+        } else {
+          await deleteBooking(bookingToEdit.id);
+          toast.success("Reserva eliminada");
+        }
       }
 
       onBookingAdded(); // Reload
@@ -655,16 +676,39 @@ export default function NewBookingModal({
               </p>
             </div>
             <div className="flex flex-col w-full gap-3 mt-4">
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={loading}
-                className="h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 justify-center"
-              >
-                {loading
-                  ? "Eliminando..."
-                  : `Sí, eliminar ${isClass ? "clase" : "reserva"}`}
-              </button>
+              {isFixed ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => confirmDelete("single")}
+                    disabled={loading}
+                    className="h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 justify-center"
+                  >
+                    {loading
+                      ? "Eliminando..."
+                      : `Eliminar solo ${isClass ? "esta clase" : "esta reserva"}`}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => confirmDelete("series")}
+                    disabled={loading}
+                    className="h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 justify-center"
+                  >
+                    {loading ? "Eliminando..." : `Eliminar toda la serie`}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => confirmDelete("single")}
+                  disabled={loading}
+                  className="h-[50px] flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-2xl md:rounded-lg border cursor-pointer transition-all duration-300 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 justify-center"
+                >
+                  {loading
+                    ? "Eliminando..."
+                    : `Sí, eliminar ${isClass ? "clase" : "reserva"}`}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
