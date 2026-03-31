@@ -544,7 +544,6 @@ export default function NewBookingModal({
           is_recurring: isFixed,
           day_of_week: startDateTime.getDay(), // Adding day from start time
         };
-        console.log("CLASS PAYLOAD:", payload);
 
         if (bookingToEdit && bookingToEdit.is_blockout) {
           await updateBlockout(bookingToEdit.id, payload);
@@ -567,7 +566,6 @@ export default function NewBookingModal({
           is_fixed: isFixed,
           details: details,
         };
-        console.log("BOOKING PAYLOAD:", payload);
 
         if (bookingToEdit && !bookingToEdit.is_blockout) {
           await updateBooking(bookingToEdit.id, payload);

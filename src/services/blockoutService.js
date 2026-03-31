@@ -63,12 +63,15 @@ export const getBlockoutsByDate = async (date) => {
 
   const validRecurring = recurringNormalized.filter((block) => {
     // Check if there's a cancelled marker for this block ID on this date
-    const isCancelledForToday = oneTimeData.some(
-      (single) =>
-        single.reason === `CANCELLED_CLASS_${block.id}` &&
-        new Date(single.start_time).getTime() ===
-          new Date(block.start_time).getTime(),
-    );
+    const blockTime = new Date(block.start_time).getTime();
+    
+    const isCancelledForToday = oneTimeData.some((single) => {
+      if (single.reason !== `CANCELLED_CLASS_${block.id}`) return false;
+      const singleTime = new Date(single.start_time).getTime();
+      // Allow up to 1 minute of difference to handle millisecond mismatches
+      return Math.abs(singleTime - blockTime) < 60000;
+    });
+    
     return !isCancelledForToday;
   });
 
