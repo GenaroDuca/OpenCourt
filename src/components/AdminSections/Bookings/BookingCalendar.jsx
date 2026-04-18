@@ -110,16 +110,23 @@ export default function BookingCalendar({
   };
 
   const isSlotOccupied = (courtId, slotStart) => {
-    // Convert slot start to date object for comparison
     const [hours, minutes] = slotStart.split(":").map(Number);
-    const slotDate = new Date(selectedDate);
-    slotDate.setHours(hours, minutes, 0, 0);
+    const slotMinutes = hours * 60 + minutes;
 
     return bookings.some((b) => {
       if (b.court_id !== courtId) return false;
       const bStart = new Date(b.start_time);
       const bEnd = new Date(b.end_time);
-      return slotDate >= bStart && slotDate < bEnd;
+      
+      const bStartMinutes = bStart.getHours() * 60 + bStart.getMinutes();
+      let bEndMinutes = bEnd.getHours() * 60 + bEnd.getMinutes();
+      
+      // Handle bookings ending at midnight
+      if (bEndMinutes === 0 && bStartMinutes > 0) {
+        bEndMinutes = 24 * 60;
+      }
+
+      return slotMinutes >= bStartMinutes && slotMinutes < bEndMinutes;
     });
   };
 
@@ -185,8 +192,14 @@ export default function BookingCalendar({
                   // Calculate height based on duration
                   const start = new Date(booking.start_time);
                   const end = new Date(booking.end_time);
-                  const diffMs = end - start;
-                  const durationMinutes = Math.round(diffMs / (1000 * 60));
+                  
+                  const startMinutes = start.getHours() * 60 + start.getMinutes();
+                  let endMinutes = end.getHours() * 60 + end.getMinutes();
+                  if (endMinutes === 0 && startMinutes > 0) {
+                    endMinutes = 24 * 60;
+                  }
+                  
+                  const durationMinutes = endMinutes - startMinutes;
                   const slotsCount = Math.ceil(durationMinutes / 30);
 
                   const gap = 8;
@@ -416,33 +429,22 @@ export default function BookingCalendar({
                 return (
                   <div
                     key={slot}
-                    onClick={() => !readOnly && onSlotClick(court.id, slot)}
-                    className={`border border-dashed border-white/10 rounded-2xl md:rounded-lg p-2 md:p-4 flex md:flex-row items-center gap-1 md:gap-0 md:justify-between justify-center md:h-[80px] h-[40px] transition-all ${
-                      !readOnly
-                        ? "hover:border-white/20 hover:bg-white/2 cursor-pointer group"
-                        : "cursor-default"
-                    }`}
+                    onClick={() => onSlotClick(court.id, slot)}
+                    className={`border border-dashed border-white/10 rounded-2xl md:rounded-lg p-2 md:p-4 flex md:flex-row items-center gap-1 md:gap-0 md:justify-between justify-center md:h-[80px] h-[40px] transition-all hover:border-white/20 hover:bg-white/2 cursor-pointer group`}
                   >
                     <span
-                      className={`text-white/30 text-[10px] md:text-sm font-bold ${!readOnly ? "group-hover:text-white/50" : ""} transition-colors bg-white/5 px-1.5 py-1 md:px-3 md:py-1.5 rounded-lg`}
+                      className={`text-white/30 text-[10px] md:text-sm font-bold group-hover:text-white/50 transition-colors bg-white/5 px-1.5 py-1 md:px-3 md:py-1.5 rounded-lg`}
                     >
                       {slot}
                     </span>
-                    {!readOnly && (
-                      <div className="flex items-center gap-2 md:gap-3 text-white/20 group-hover:text-primary transition-colors pr-0 md:pr-2">
-                        <span className="text-xs font-bold uppercase tracking-wider hidden md:group-hover:block transition-all">
-                          Reservar
-                        </span>
-                        <div className="w-5 h-5 md:w-8 md:h-8 border border-current flex items-center justify-center bg-white/5 group-hover:bg-primary/10 group-hover:border-primary/50 rounded-lg">
-                          <BsPlus size={14} className="md:w-5 md:h-5" />
-                        </div>
-                      </div>
-                    )}
-                    {/* {readOnly && (
-                      <span className="text-[10px] font-bold text-primary/40 uppercase tracking-widest px-2">
-                        Consultar
+                    <div className="flex items-center gap-2 md:gap-3 text-white/20 group-hover:text-primary transition-colors pr-0 md:pr-2">
+                      <span className="text-xs font-bold uppercase tracking-wider hidden md:group-hover:block transition-all">
+                        Reservar
                       </span>
-                    )} */}
+                      <div className="w-5 h-5 md:w-8 md:h-8 border border-current flex items-center justify-center bg-white/5 group-hover:bg-primary/10 group-hover:border-primary/50 rounded-lg">
+                        <BsPlus size={14} className="md:w-5 md:h-5" />
+                      </div>
+                    </div>
                   </div>
                 );
               })}

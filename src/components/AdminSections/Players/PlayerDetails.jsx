@@ -91,7 +91,7 @@ export default function PlayerDetails() {
         const { data, error } = await supabase
           .from("players")
           .select(
-            "*, booking_players(id, individual_price, is_paid, created_at, bookings(id, court_id, start_time, end_time, courts(name)), payments(amount, payment_method, paid_at))",
+            "*, booking_players(id, individual_price, is_paid, created_at, bookings(id, court_id, start_time, end_time, courts(name), booking_players(players(full_name))), payments(amount, payment_method, paid_at))",
           )
           .eq("id", id)
           .single();
@@ -183,6 +183,11 @@ export default function PlayerDetails() {
 
         const payment = bp.payment;
 
+        const otherPlayers = booking?.booking_players
+          ?.map((otherBp) => otherBp.players?.full_name)
+          .filter((name) => name && name !== player.full_name)
+          .join(", ");
+
         // Check status logic
         const now = new Date();
         const isFuture = start > now;
@@ -221,6 +226,7 @@ export default function PlayerDetails() {
             : "-",
           rawDate: booking.start_time,
           bookingId: booking.id,
+          otherPlayers: otherPlayers || "",
         };
       })
       .filter((b) => {
@@ -448,7 +454,7 @@ export default function PlayerDetails() {
       {/* Content Area - Table */}
       <div className="bg-background-card-color border border-border-color md:rounded-lg rounded-2xl overflow-hidden">
         {/* Table Header */}
-        <div className="hidden md:grid md:grid-cols-5 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
+        <div className="hidden md:grid md:grid-cols-6 gap-4 p-5 bg-white/5 border-b border-border-color text-[10px] font-bold text-text-color/50 uppercase tracking-widest">
           <div
             className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
             onClick={() => handleSort("rawDate")}
@@ -472,6 +478,9 @@ export default function PlayerDetails() {
               ) : (
                 <BsArrowDown />
               ))}
+          </div>
+          <div className="flex items-center gap-2 cursor-default">
+            Jugadores
           </div>
           <div
             className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
@@ -518,7 +527,7 @@ export default function PlayerDetails() {
               <div
                 key={booking.id}
                 onClick={() => handleBookingClick(booking)}
-                className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 p-2 md:p-4 hover:bg-white/5 transition-colors items-center cursor-pointer group border-b border-border-color"
+                className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-4 p-2 md:p-4 hover:bg-white/5 transition-colors items-center cursor-pointer group border-b border-border-color"
               >
                 {/* Date */}
                 <div className="flex flex-col col-span-2 md:col-span-1 order-1 md:order-1">
@@ -534,13 +543,18 @@ export default function PlayerDetails() {
                   {booking.courtDetail}
                 </div>
 
+                {/* Players */}
+                <div className="text-text-color/50 text-xs col-span-2 md:col-span-1 order-4 md:order-3 truncate" title={booking.otherPlayers || "Solo"}>
+                  {booking.otherPlayers ? `${booking.otherPlayers}` : "Solo"}
+                </div>
+
                 {/* Amount */}
-                <div className="text-white font-bold text-sm col-span-1 md:col-span-1 order-4 md:order-3">
+                <div className="text-white font-bold text-sm col-span-1 md:col-span-1 order-5 md:order-4">
                   {booking.amount}
                 </div>
 
                 {/* Payment Info */}
-                <div className="flex flex-col col-span-1 md:col-span-1 order-5 md:order-4">
+                <div className="flex flex-col col-span-1 md:col-span-1 order-6 md:order-5">
                   <div className="flex items-center gap-2">
                     {booking.paymentMethod !== "-" ? (
                       <span
@@ -562,7 +576,7 @@ export default function PlayerDetails() {
                 </div>
 
                 {/* Status */}
-                <div className="col-span-2 md:col-span-1 flex justify-start md:justify-start order-2 md:order-5">
+                <div className="col-span-2 md:col-span-1 flex justify-start md:justify-start order-2 md:order-6">
                   <span
                     onClick={(e) => handleStatusClick(e, booking)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
