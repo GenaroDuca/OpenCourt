@@ -189,23 +189,23 @@ export default function Home() {
               bookings={bookings}
               courts={courts}
               selectedDate={selectedDate}
-              onSlotClick={() => {}}
+              onSlotClick={(courtId, slot) => {
+                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const dateStr = selectedDate.toLocaleDateString('es-ES', dateOptions);
+                const [hours, minutes] = slot.split(':').map(Number);
+                
+                const endDateTime = new Date(selectedDate);
+                endDateTime.setHours(hours, minutes + 90);
+                const endStr = `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`;
+                
+                const message = `Hola! Quiero reservar cancha para el ${dateStr} de ${slot} a ${endStr}`;
+                const url = `https://api.whatsapp.com/send?phone=542284527236&text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+              }}
               onBookingClick={() => {}}
               readOnly={true}
             />
           )}
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center gap-4 py-4 px-2 text-[10px] font-bold uppercase tracking-widest text-text-color/40 border-t border-white/5">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-primary/20 border border-primary/40"></div>
-            <span>Libre</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-white/10 border border-white/20"></div>
-            <span>Ocupado</span>
-          </div>
         </div>
 
         {/* Floating WhatsApp Button */}
