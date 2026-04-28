@@ -5,7 +5,7 @@ import { getMonthlyRevenue } from "../../services/bookingService";
 import toast from "react-hot-toast";
 
 import { IoIosTennisball } from "react-icons/io";
-import { BsPeopleFill, BsChevronLeft, BsChevronRight } from "react-icons/bs";
+import { BsPeopleFill, BsChevronLeft, BsChevronRight, BsClockHistory } from "react-icons/bs";
 import { FaMoneyBills } from "react-icons/fa6";
 import { TbLogout, TbHome } from "react-icons/tb";
 
@@ -77,7 +77,7 @@ export default function Navbar() {
 
   return (
     <nav className="h-full flex md:flex-col justify-between items-center">
-      <ul className="flex md:flex-col gap-2 md:gap-4 md:mt-4 md:w-full w-auto">
+      <ul className="flex md:flex-col gap-1 md:gap-4 md:mt-4 md:w-full w-auto">
         <li>
           <Link to="/admin/bookings" className={getLinkClass("bookings")}>
             <IoIosTennisball size={20} className="hidden md:block" />
@@ -94,6 +94,12 @@ export default function Navbar() {
           <Link to="/admin/payments" className={getLinkClass("payments")}>
             <FaMoneyBills size={20} className="hidden md:block" />
             <span className="cursor-pointer">Pagos</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/admin/work-hours" className={getLinkClass("work-hours")}>
+            <BsClockHistory size={20} className="hidden md:block" />
+            <span className="cursor-pointer">Horas</span>
           </Link>
         </li>
       </ul>

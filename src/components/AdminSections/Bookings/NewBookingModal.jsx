@@ -12,6 +12,12 @@ import {
   deleteBlockout,
   createBlockoutException,
 } from "../../../services/blockoutService";
+import {
+  getWorkers,
+  getShiftCoveragesByBooking,
+  saveShiftCoverages,
+} from "../../../services/workerService";
+import { supabase } from "../../../../supabaseClient";
 import { createPlayer } from "../../../services/playerService";
 import toast from "react-hot-toast";
 import {
@@ -125,9 +131,15 @@ export default function NewBookingModal({
 
   const [details, setDetails] = useState(""); // Details for notes
 
+  // Workers & Coverages State
+  const [workers, setWorkers] = useState([]);
+  const [shiftCoverages, setShiftCoverages] = useState([]);
+  const [openWorkerDropdownIndex, setOpenWorkerDropdownIndex] = useState(null);
+
   const timeDropdownRef = useRef(null);
   const endTimeDropdownRef = useRef(null);
   const playerDropdownRef = useRef(null);
+  const workerDropdownRef = useRef(null);
 
   const handleUpdatePlayerPrice = (id, newPrice) => {
     setSelectedPlayers(
@@ -136,8 +148,34 @@ export default function NewBookingModal({
   };
 
   useEffect(() => {
+    const initData = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const workersList = await getWorkers();
+        if (user && workersList) {
+          workersList.sort((a, b) => {
+            if (a.id === user.id) return -1;
+            if (b.id === user.id) return 1;
+            return 0;
+          });
+        }
+        setWorkers(workersList || []);
+      } catch (err) {
+        console.error("Error loading workers:", err);
+      }
+    };
+    initData();
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       if (bookingToEdit) {
+        getShiftCoveragesByBooking(bookingToEdit.id)
+          .then((data) => setShiftCoverages(data || []))
+          .catch(console.error);
+
         const start = new Date(bookingToEdit.start_time);
 
         // Date
@@ -242,6 +280,7 @@ export default function NewBookingModal({
         setIsClass(false);
         setClassReason("");
         setDetails("");
+        setShiftCoverages([]);
       }
 
       setPlayerSearch("");
@@ -265,6 +304,7 @@ export default function NewBookingModal({
       setShowDeleteConfirm(false);
       setShowPaymentModal(false);
       setSelectedPlayerForPayment(null);
+      setShiftCoverages([]);
     }
   }, [isOpen]);
 
@@ -288,6 +328,12 @@ export default function NewBookingModal({
         !playerDropdownRef.current.contains(event.target)
       ) {
         setIsPlayerOpen(false);
+      }
+      if (
+        workerDropdownRef.current &&
+        !workerDropdownRef.current.contains(event.target)
+      ) {
+        setOpenWorkerDropdownIndex(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -569,9 +615,11 @@ export default function NewBookingModal({
 
         if (bookingToEdit && !bookingToEdit.is_blockout) {
           await updateBooking(bookingToEdit.id, payload);
+          await saveShiftCoverages(bookingToEdit.id, shiftCoverages);
           toast.success("Actualizado exitosamente");
         } else {
-          await createBooking(payload);
+          const newBooking = await createBooking(payload);
+          await saveShiftCoverages(newBooking.id, shiftCoverages);
           toast.success("Creado exitosamente");
         }
       }
@@ -583,6 +631,7 @@ export default function NewBookingModal({
         setSelectedPlayers([]);
         setDetails("");
         setClassReason("");
+        setShiftCoverages([]);
       }
     } catch (err) {
       console.error("DEBUG SUBMIT ERROR:", err);
@@ -1222,7 +1271,7 @@ export default function NewBookingModal({
                     </div>
 
                     {/* Notes / Details for Regular Booking */}
-                    <div className="flex flex-col gap-2 mt-2">
+                    <div className="flex flex-col gap-2">
                       <label className="text-sm font-medium text-text-color">
                         Notas (Opcional)
                       </label>
@@ -1233,6 +1282,150 @@ export default function NewBookingModal({
                         rows={2}
                         className="w-full h-30 pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color flex items-center justify-between transition-all duration-300 border-border-color hover:border-primary/30 focus:outline-none resize-none"
                       />
+                      {/* Worker Coverages */}
+                      <div
+                        className="flex flex-col gap-2 mt-4 bg-white/5 p-3 rounded-2xl md:rounded-lg border border-white/10"
+                        ref={workerDropdownRef}
+                      >
+                        <label className="text-sm font-medium text-white flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-sm text-text-color">
+                              ¿Quién cubrió el turno?
+                            </span>
+                            <span className="text-xs text-text-color/50">
+                              En minutos
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShiftCoverages([
+                                ...shiftCoverages,
+                                {
+                                  worker_id: workers[0]?.id || "",
+                                  duration_minutes: 90,
+                                },
+                              ])
+                            }
+                            className="cursor-pointer px-2 py-1 text-xs rounded-2xl md:rounded-lg transition-all border duration-300 flex items-center justify-center bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
+                          >
+                            <BsPlus size={14} /> Agregar
+                          </button>
+                        </label>
+                        {shiftCoverages.length === 0 ? (
+                          <p className="text-xs text-text-color/50 italic">
+                            Sin registro de cobertura.
+                          </p>
+                        ) : (
+                          <div className="flex flex-col gap-3">
+                            {shiftCoverages.map((cov, index) => {
+                              const selectedWorker = workers.find(
+                                (w) => w.id === cov.worker_id,
+                              );
+                              const isDropdownOpen =
+                                openWorkerDropdownIndex === index;
+
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-2"
+                                >
+                                  <div className="flex-1 relative">
+                                    <div
+                                      onClick={() =>
+                                        setOpenWorkerDropdownIndex(
+                                          isDropdownOpen ? null : index,
+                                        )
+                                      }
+                                      className={`w-full pl-4 pr-4 py-2 rounded-2xl md:rounded-lg bg-background-color border text-text-color cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                                        isDropdownOpen
+                                          ? "border-primary/30"
+                                          : "border-border-color hover:border-primary/30"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2 text-sm overflow-hidden whitespace-nowrap text-ellipsis">
+                                        {selectedWorker ? (
+                                          selectedWorker.email
+                                        ) : (
+                                          <span className="text-text-color/50">
+                                            Seleccionar...
+                                          </span>
+                                        )}
+                                      </div>
+                                      <BsChevronDown
+                                        className={`text-text-color/50 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`}
+                                      />
+                                    </div>
+
+                                    {/* Custom Dropdown Options */}
+                                    <div
+                                      className={`absolute z-20 top-full left-0 right-0 mt-2 bg-background-card-color border border-border-color rounded-2xl md:rounded-lg overflow-hidden shadow-xl transition-all duration-300 origin-top ${
+                                        isDropdownOpen
+                                          ? "opacity-100 translate-y-0 scale-100 visible"
+                                          : "opacity-0 -translate-y-2 scale-95 invisible pointer-events-none"
+                                      }`}
+                                    >
+                                      <div className="max-h-60 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-1">
+                                        {workers.map((w) => (
+                                          <div
+                                            key={w.id}
+                                            onClick={() => {
+                                              const newCov = [
+                                                ...shiftCoverages,
+                                              ];
+                                              newCov[index].worker_id = w.id;
+                                              setShiftCoverages(newCov);
+                                              setOpenWorkerDropdownIndex(null);
+                                            }}
+                                            className={`p-2 rounded-2xl md:rounded-lg cursor-pointer text-sm transition-colors flex items-center justify-between ${
+                                              cov.worker_id === w.id
+                                                ? "bg-primary/10 text-primary font-medium"
+                                                : "text-text-color hover:bg-white/5"
+                                            }`}
+                                          >
+                                            {w.email}
+                                            {cov.worker_id === w.id && (
+                                              <BsCheckLg size={14} />
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      value={cov.duration_minutes}
+                                      onChange={(e) => {
+                                        const newCov = [...shiftCoverages];
+                                        newCov[index].duration_minutes = Number(
+                                          e.target.value,
+                                        );
+                                        setShiftCoverages(newCov);
+                                      }}
+                                      className="w-16 h-[38px] bg-background-color border border-border-color rounded-2xl md:rounded-lg px-2 text-xs md:text-sm text-center text-text-color focus:outline-none focus:border-primary/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setShiftCoverages(
+                                        shiftCoverages.filter(
+                                          (_, i) => i !== index,
+                                        ),
+                                      )
+                                    }
+                                    className="gap-2 px-2 py-2 rounded-2xl md:rounded-lg border border-red-500/20 text-red-500 bg-red-500/10 hover:bg-red-500/15 cursor-pointer transition-all duration-300 font-medium flex items-center justify-center"
+                                  >
+                                    <BsTrash size={16} />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>{" "}
                     </div>
                   </>
                 ) : (
