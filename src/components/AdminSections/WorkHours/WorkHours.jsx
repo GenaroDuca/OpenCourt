@@ -92,127 +92,157 @@ export default function WorkHours() {
               </div>
             ) : (
               workerStats.map((worker) => {
-                const completos = worker.coverages.filter(c => c.isComplete);
-                const incompletos = worker.coverages.filter(c => !c.isComplete);
+                const completos = worker.coverages.filter((c) => c.isComplete);
+                const incompletos = worker.coverages.filter(
+                  (c) => !c.isComplete,
+                );
                 const isExpanded = expandedWorkerId === worker.id;
 
                 return (
-                <div
-                  key={worker.id}
-                  onClick={() => setExpandedWorkerId(isExpanded ? null : worker.id)}
-                  className={`bg-white/5 border ${isExpanded ? "border-primary/50" : "border-white/10"} rounded-2xl md:rounded-lg p-4 md:p-6 flex flex-col gap-4 hover:border-primary/30 transition-all cursor-pointer`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-lg">
-                      {worker.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-white">
-                        {worker.name}
-                      </h3>
-                      <p className="text-xs text-text-color/50">
-                        {worker.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="h-px bg-white/10 w-full my-2"></div>
-
-                  <div className="grid grid-cols-2 gap-4 items-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-xs text-text-color/50 uppercase tracking-wider">
-                        Minutos Totales
-                      </span>
-                      <span className="text-xl font-bold text-white">
-                        {worker.totalMinutes} min
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-xs text-text-color/50 uppercase tracking-wider">
-                        Horas Totales
-                      </span>
-                      <span className="text-2xl font-bold text-primary">
-                        {worker.totalHours.toFixed(2)} hs
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Detalles Expandidos */}
-                  {isExpanded && (
-                    <div 
-                      className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-300 cursor-default"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {/* Completos */}
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                          <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                            Turnos Completos ({completos.length})
-                          </h4>
-                        </div>
-                        {completos.length === 0 ? (
-                          <p className="text-xs text-text-color/50 italic">No hay turnos completos.</p>
-                        ) : (
-                          <div className="grid grid-cols-1 gap-2">
-                            {completos.map(cov => {
-                              const d = new Date(cov.booking.start_time);
-                              return (
-                                <div key={cov.id} className="flex justify-between items-center bg-background-color p-2 md:p-3 rounded-lg border border-border-color">
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-white capitalize">
-                                      {d.toLocaleDateString("es-AR", { weekday: "short", day: "2-digit", month: "short" })}
-                                    </span>
-                                    <span className="text-xs text-text-color/50">
-                                      {cov.booking.courts?.name} • {d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
-                                    </span>
-                                  </div>
-                                  <span className="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded">
-                                    {cov.duration} min
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                  <div
+                    key={worker.id}
+                    onClick={() =>
+                      setExpandedWorkerId(isExpanded ? null : worker.id)
+                    }
+                    className={`bg-white/5 border ${isExpanded ? "border-primary/50" : "border-white/10"} rounded-2xl md:rounded-lg p-4 md:p-6 flex flex-col gap-4 hover:border-primary/30 transition-all cursor-pointer`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-lg">
+                        {worker.name.charAt(0).toUpperCase()}
                       </div>
-
-                      {/* Incompletos */}
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                          <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                            Turnos Incompletos ({incompletos.length})
-                          </h4>
-                        </div>
-                        {incompletos.length === 0 ? (
-                          <p className="text-xs text-text-color/50 italic">No hay turnos incompletos.</p>
-                        ) : (
-                          <div className="grid grid-cols-1 gap-2">
-                            {incompletos.map(cov => {
-                              const d = new Date(cov.booking.start_time);
-                              return (
-                                <div key={cov.id} className="flex justify-between items-center bg-background-color p-2 md:p-3 rounded-lg border border-border-color">
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-white capitalize">
-                                      {d.toLocaleDateString("es-AR", { weekday: "short", day: "2-digit", month: "short" })}
-                                    </span>
-                                    <span className="text-xs text-text-color/50">
-                                      {cov.booking.courts?.name} • {d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
-                                    </span>
-                                  </div>
-                                  <span className="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-1 rounded">
-                                    {cov.duration} min
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                      <div>
+                        <h3 className="text-lg font-bold text-white">
+                          {worker.name}
+                        </h3>
+                        <p className="text-xs text-text-color/50">
+                          {worker.email}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
+
+                    <div className="h-px bg-white/10 w-full my-2"></div>
+
+                    <div className="grid grid-cols-2 gap-4 items-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-xs text-text-color/50 uppercase tracking-wider">
+                          Minutos Totales
+                        </span>
+                        <span className="text-xl font-bold text-white">
+                          {worker.totalMinutes} min
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-xs text-text-color/50 uppercase tracking-wider">
+                          Horas Totales
+                        </span>
+                        <span className="text-2xl font-bold text-primary">
+                          {worker.totalHours.toFixed(2)} hs
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Detalles Expandidos */}
+                    {isExpanded && (
+                      <div
+                        className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-300 cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* Completos */}
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                              Turnos Completos ({completos.length})
+                            </h4>
+                          </div>
+                          {completos.length === 0 ? (
+                            <p className="text-xs text-text-color/50 italic">
+                              No hay turnos completos.
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-1 gap-2">
+                              {completos.map((cov) => {
+                                const d = new Date(cov.booking.start_time);
+                                return (
+                                  <div
+                                    key={cov.id}
+                                    className="flex justify-between items-center bg-background-color p-2 md:p-3 rounded-2xl md:rounded-lg border border-border-color"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-bold text-text-color capitalize">
+                                        {d.toLocaleDateString("es-AR", {
+                                          weekday: "short",
+                                          day: "2-digit",
+                                          month: "short",
+                                        })}
+                                      </span>
+                                      <span className="text-xs text-text-color/50">
+                                        {cov.booking.courts?.name} •{" "}
+                                        {d.toLocaleTimeString("es-AR", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded-2xl md:rounded-lg">
+                                      {cov.duration} min
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Incompletos */}
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                              Turnos Incompletos ({incompletos.length})
+                            </h4>
+                          </div>
+                          {incompletos.length === 0 ? (
+                            <p className="text-xs text-text-color/50 italic">
+                              No hay turnos incompletos.
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-1 gap-2">
+                              {incompletos.map((cov) => {
+                                const d = new Date(cov.booking.start_time);
+                                return (
+                                  <div
+                                    key={cov.id}
+                                    className="flex justify-between items-center bg-background-color p-2 md:p-3 rounded-2xl md:rounded-lg border border-border-color"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-bold text-text-color capitalize">
+                                        {d.toLocaleDateString("es-AR", {
+                                          weekday: "short",
+                                          day: "2-digit",
+                                          month: "short",
+                                        })}
+                                      </span>
+                                      <span className="text-xs text-text-color/50">
+                                        {cov.booking.courts?.name} •{" "}
+                                        {d.toLocaleTimeString("es-AR", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-1 rounded-2xl md:rounded-lg">
+                                      {cov.duration} min
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })
             )}
