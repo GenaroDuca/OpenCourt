@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { BsPlus, BsPerson } from "react-icons/bs";
+import { getWorkers } from "../../../services/workerService";
 
 const TIME_SLOTS = [];
 for (let i = 8; i < 24; i++) {
@@ -17,9 +18,14 @@ export default function BookingCalendar({
   highlightedBookingId,
   readOnly = false,
 }) {
-  const [isMobile, setIsMobile] = React.useState(false);
-  const [currentTime, setCurrentTime] = React.useState(new Date());
-  const scrollRef = React.useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [workers, setWorkers] = useState([]);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    getWorkers().then(setWorkers).catch(console.error);
+  }, []);
 
   React.useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -355,21 +361,41 @@ export default function BookingCalendar({
                       {!isBlock && (
                         <div className="flex items-end justify-center md:justify-between gap-1 relative z-10">
                           {!readOnly && (
-                            <div
-                              className={`hidden md:flex items-center gap-1 md:gap-2 ${
-                                isFixed ? "text-blue-500/80" : "text-primary/80"
-                              } text-[8px] md:text-sm font-medium `}
-                            >
-                              <BsPerson
-                                size={14}
-                                className="md:w-[20px] md:h-[20px]"
-                              />
-                              <span className="text-[12px] md:text-sm">
-                                {count}{" "}
-                                <span className="hidden md:inline">
-                                  Jugadores
+                            <div className="hidden md:flex flex-col gap-1 items-start justify-end">
+                              <div
+                                className={`flex items-center gap-1 md:gap-2 ${
+                                  isFixed ? "text-blue-500/80" : "text-primary/80"
+                                } text-[8px] md:text-sm font-medium `}
+                              >
+                                <BsPerson
+                                  size={14}
+                                  className="md:w-[20px] md:h-[20px]"
+                                />
+                                <span className="text-[12px] md:text-sm">
+                                  {count}{" "}
+                                  <span className="hidden md:inline">
+                                    Jugadores
+                                  </span>
                                 </span>
-                              </span>
+                              </div>
+                              
+                              {/* Mostrar quien cubrio el turno */}
+                              {booking.shift_coverages && booking.shift_coverages.length > 0 && (
+                                <div className="flex flex-col gap-0.5 mt-auto">
+                                  {booking.shift_coverages.map((cov, i) => {
+                                    const w = workers.find(work => work.id === cov.worker_id);
+                                    const workerName = w ? w.email.split('@')[0] : 'Desc.';
+                                    return (
+                                      <div key={i} className="flex items-center gap-1 text-[7px] md:text-[9px] text-white/50 bg-white/5 border border-white/5 px-1 md:px-1.5 py-0.5 rounded-sm md:rounded-md backdrop-blur-sm">
+                                        <div className="w-1 h-1 rounded-full bg-primary/50"></div>
+                                        <span className="capitalize truncate max-w-[40px] md:max-w-[70px]">
+                                          {workerName}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           )}
 

@@ -14,6 +14,9 @@ export const getBookingsByDate = async (date) => {
       `
       *,
       courts (name),
+      shift_coverages (
+        worker_id
+      ),
       booking_players (
         id,
         individual_price,
