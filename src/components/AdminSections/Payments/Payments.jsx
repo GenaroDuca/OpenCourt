@@ -91,7 +91,8 @@ export default function Payments() {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background-color/80 backdrop-blur-sm w-full py-2 border-b border-white/5 flex flex-row justify-between items-center gap-2 mb-2 md:gap-4 md:mb-4 ">
         <div className="flex flex-col">
-          <h1 className="text-xl font-bold text-white md:text-3xl">Pagos</h1>
+          <h1 className="text-xl font-bold text-white md:text-3xl">
+            Pagos</h1>
           <p className="text-text-color/70 text-xs md:text-sm">
             Historial por Mes
           </p>
