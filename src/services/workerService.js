@@ -72,7 +72,7 @@ export const getAccumulatedHours = async (date = new Date()) => {
       id: w.id,
       email: w.email,
       name: w.email.split('@')[0], 
-      totalMinutes: 0,
+      intervals: [],
       coverages: []
     };
   });
@@ -80,16 +80,23 @@ export const getAccumulatedHours = async (date = new Date()) => {
   data.forEach(coverage => {
     if (workerMap[coverage.worker_id]) {
       const w = workerMap[coverage.worker_id];
-      w.totalMinutes += coverage.duration_minutes;
       
       let isComplete = false;
+      let start = null;
       if (coverage.bookings && coverage.bookings.start_time && coverage.bookings.end_time) {
-        const start = new Date(coverage.bookings.start_time);
+        start = new Date(coverage.bookings.start_time);
         const end = new Date(coverage.bookings.end_time);
         const bookingDuration = Math.round((end - start) / 60000);
         isComplete = coverage.duration_minutes >= bookingDuration;
       } else {
         isComplete = coverage.duration_minutes >= 90;
+      }
+
+      if (start) {
+        w.intervals.push({
+          start: start.getTime(),
+          end: start.getTime() + coverage.duration_minutes * 60000
+        });
       }
 
       w.coverages.push({
@@ -101,8 +108,30 @@ export const getAccumulatedHours = async (date = new Date()) => {
     }
   });
 
-  return Object.values(workerMap).map(w => ({
-    ...w,
-    totalHours: w.totalMinutes / 60
-  }));
+  return Object.values(workerMap).map(w => {
+    let mergedMinutes = 0;
+    if (w.intervals.length > 0) {
+      w.intervals.sort((a, b) => a.start - b.start);
+      let current = w.intervals[0];
+      for (let i = 1; i < w.intervals.length; i++) {
+        const next = w.intervals[i];
+        if (next.start <= current.end) {
+          current.end = Math.max(current.end, next.end);
+        } else {
+          mergedMinutes += (current.end - current.start) / 60000;
+          current = { ...next };
+        }
+      }
+      mergedMinutes += (current.end - current.start) / 60000;
+    }
+
+    return {
+      id: w.id,
+      email: w.email,
+      name: w.name,
+      totalMinutes: Math.round(mergedMinutes),
+      totalHours: mergedMinutes / 60,
+      coverages: w.coverages
+    };
+  });
 };
