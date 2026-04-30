@@ -81,7 +81,7 @@ const GENERATE_TIME_OPTIONS = () => {
 };
 
 const TIME_OPTIONS = GENERATE_TIME_OPTIONS();
-const DURATION_MINUTES = 90;
+const DURATION_MINUTES = 60;
 
 export default function NewBookingModal({
   isOpen,
@@ -242,16 +242,35 @@ export default function NewBookingModal({
         let targetStartTime = initialTime || "08:00";
         setStartTime(targetStartTime);
 
+        let defaultEndStr = "09:30";
         const [h, m] = targetStartTime.split(":").map(Number);
-        const defaultEnd = new Date();
+        
+        // Use the actual target date for defaultEnd instead of today
+        let defaultEnd = new Date(`${targetDateStr}T00:00:00`);
         defaultEnd.setHours(h, m + DURATION_MINUTES);
-        setEndTime(
-          defaultEnd.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }),
-        );
+
+        // Cap default end time to avoid overlap with next booking
+        if (initialCourtId) {
+          const proposedStart = new Date(`${targetDateStr}T${targetStartTime}`);
+          const nextBooking = bookings
+            .filter((b) => b.court_id === initialCourtId && new Date(b.start_time) >= proposedStart)
+            .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0];
+          
+          if (nextBooking) {
+            const nextBookingStart = new Date(nextBooking.start_time);
+            if (defaultEnd > nextBookingStart) {
+              defaultEnd = nextBookingStart;
+            }
+          }
+        }
+
+        defaultEndStr = defaultEnd.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+
+        setEndTime(defaultEndStr);
 
         if (initialCourtId) {
           setCourtId(initialCourtId);
@@ -951,8 +970,26 @@ export default function NewBookingModal({
 
                             if (!isClass) {
                               const [h, m] = time.split(":").map(Number);
-                              const defaultEnd = new Date();
+                              let defaultEnd = new Date(`${dateStr}T00:00:00`);
                               defaultEnd.setHours(h, m + DURATION_MINUTES);
+
+                              if (courtId && dateStr) {
+                                const proposedStart = new Date(`${dateStr}T${time}`);
+                                const nextBooking = bookings
+                                  .filter((b) => {
+                                    if (bookingToEdit && b.id === bookingToEdit.id) return false;
+                                    return b.court_id === courtId && new Date(b.start_time) >= proposedStart;
+                                  })
+                                  .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0];
+                                
+                                if (nextBooking) {
+                                  const nextBookingStart = new Date(nextBooking.start_time);
+                                  if (defaultEnd > nextBookingStart) {
+                                    defaultEnd = nextBookingStart;
+                                  }
+                                }
+                              }
+
                               setEndTime(
                                 defaultEnd.toLocaleTimeString([], {
                                   hour: "2-digit",
@@ -1298,15 +1335,20 @@ export default function NewBookingModal({
                           </div>
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              const [sH, sM] = startTime.split(":").map(Number);
+                              const [eH, eM] = endTime.split(":").map(Number);
+                              let duration = (eH * 60 + eM) - (sH * 60 + sM);
+                              if (duration <= 0) duration = DURATION_MINUTES;
+
                               setShiftCoverages([
                                 ...shiftCoverages,
                                 {
                                   worker_id: workers[0]?.id || "",
-                                  duration_minutes: 90,
+                                  duration_minutes: duration,
                                 },
-                              ])
-                            }
+                              ]);
+                            }}
                             className="cursor-pointer px-2 py-1 text-xs rounded-2xl md:rounded-lg transition-all border duration-300 flex items-center justify-center bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
                           >
                             <BsPlus size={14} /> Agregar
