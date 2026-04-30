@@ -81,7 +81,7 @@ const GENERATE_TIME_OPTIONS = () => {
 };
 
 const TIME_OPTIONS = GENERATE_TIME_OPTIONS();
-const DURATION_MINUTES = 60;
+const DURATION_MINUTES = 90;
 
 export default function NewBookingModal({
   isOpen,
