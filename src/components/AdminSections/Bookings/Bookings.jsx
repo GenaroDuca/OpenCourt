@@ -223,7 +223,7 @@ export default function Bookings() {
             >
               <BsChevronLeft />
             </button>
-            <div className="flex items-center gap-2  min-w-[100px] text-sm md:text-base md:min-w-[180px] justify-center text-white font-medium">
+            <div className="flex items-center gap-2  min-w-[100px] text-sm md:text-base xl:min-w-[180px] justify-center text-white font-medium">
               <BsCalendar3 className="text-primary" />
               <span>{selectedDate.toLocaleDateString()}</span>
             </div>
@@ -254,7 +254,7 @@ export default function Bookings() {
         </div>
 
         <div className="flex-col-reverse md:flex-row hidden md:flex items-center gap-2 md:gap-6">
-          <div className="text-sm md:text-lg font-bold text-white capitalize">
+          <div className="text-sm xl:text-lg font-bold text-white capitalize">
             {formatDate(selectedDate)}
           </div>
           <div className="flex items-center gap-2 md:gap-3">
@@ -299,10 +299,10 @@ export default function Bookings() {
             setEditingBooking(null);
             setIsModalOpen(true);
           }}
-          className="md:h-[50px] hidden md:flex items-center gap-3 px-2 md:px-4 py-1 md:py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
+          className="md:h-[50px] md:w-[50px] xl:w-auto  hidden md:flex justify-center items-center gap-3 px-2 xl:px-4 py-1 xl:py-3 rounded-lg border cursor-pointer transition-all duration-300 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30"
         >
           <BsPlus size={20} />
-          <span className="hidden md:block text-sm">Nueva Reserva</span>
+          <span className="hidden xl:block text-sm">Nueva Reserva</span>
         </button>
       </div>
 
